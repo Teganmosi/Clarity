@@ -1,0 +1,18 @@
+name,email,company,phone,title,source,campaign,medium,past_interactions,pages_visited,time_on_site,company_size,industry,budget,notes,tags
+John Smith,john.smith@example.com,TechCorp Inc,+1234567890,CTO,website,awareness,organic,8,25,12.5,medium,Technology,high,Very interested in enterprise plan,enterprise,vip
+Sarah Johnson,sarah.j@example.com,StartupXYZ,+1987654321,VP Marketing,referral,decision,referral,12,40,25.0,small,SaaS,high,Referred by existing client,decision-maker,warm-lead
+Michael Brown,michael.b@example.com,Global Corp,+15551234567,Director of Sales,paid_ads,consideration,cpc,3,8,4.2,large,Enterprise,medium,Clicked on LinkedIn ad,enterprise
+Emily Davis,emily.d@example.com,Innovate LLC,+14445556666,Product Manager,email,retention,email,15,60,30.0,medium,Fintech,high,Opened 5 emails,engaged
+Robert Wilson,robert.w@example.com,DataFlow Inc,+16667778888,Lead Engineer,social_media,awareness,organic,2,5,2.1,small,Data Science,low,Found us on Twitter,early-stage
+Jennifer Lee,jennifer.lee@example.com,CloudScale,+17778889999,CEO,partner,decision,referral,20,100,50.0,enterprise,Cloud,enterprise,Strategic partner,high-value
+David Miller,david.m@example.com,SoftTech,+18889990000,CTO,event,consideration,organic,6,18,9.5,medium,Software,medium,Attended webinar,webinar-attendee
+Amanda Thompson,amanda.t@example.com,GrowthHub,+19990001111,VP Sales,website,awareness,organic,4,12,6.0,small,Marketing,low,First time visitor,cold-lead
+Christopher Garcia,christopher.g@example.com,ScaleUp Inc,+12223334444,COO,referral,decision,referral,10,35,17.5,medium,Technology,high,Referred by partner,warm-lead
+Jessica Martinez,jessica.m@example.com,FutureTech,+13334445555,Head of Product,paid_ads,consideration,cpc,5,10,5.0,large,AI,medium,Google Ads campaign,enterprise
+Daniel Rodriguez,daniel.r@example.com,DataDriven,+14445556666,Data Scientist,email,retention,email,8,22,11.0,medium,Data Analytics,high,Newsletter subscriber,engaged
+Lisa White,lisa.w@example.com,StartupCo,+15556667777,Founder,event,awareness,organic,3,7,3.5,small,SaaS,low,Tech conference attendee,early-stage
+Matthew Anderson,matthew.a@example.com,Enterprise Inc,+16667778888,VP Engineering,website,decision,organic,18,75,37.5,enterprise,Enterprise,enterprise,Requested demo,hot-lead
+Ashley Taylor,ashley.t@example.com,CloudFirst,+17778889999,CTO,partner,decision,referral,14,45,22.5,large,Cloud,high,Partner referral,high-value
+Joshua Thomas,joshua.t@example.com,InnovateNow,+18889990000,Product Lead,paid_ads,consideration,cpc,2,4,2.0,small,Technology,low,Facebook ad,early-stage
+Michelle Hernandez,michelle.h@example.com,ScaleFast,+19990001111,VP Operations,website,awareness,organic,7,16,8.0,medium,SaaS,medium,Multiple page visits,engaged
+Andrew Moore,andrew.m@example.com,TechGrowth,+12223334444,CEO,referral,decision,referral,25,120,60.0,enterprise,Technology,enterprise,Executive referral,hot-lead
