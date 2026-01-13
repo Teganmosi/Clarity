@@ -2,22 +2,24 @@
 Lead Scoring Engine - Main FastAPI Application
 """
 
+import os
+from dotenv import load_dotenv
+
+# Load environment variables as early as possible
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+load_dotenv(dotenv_path=env_path)
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-import os
 import logging
-from dotenv import load_dotenv
 
 # Import routers
 from app.routers import auth, leads, analytics, integrations
 
 # Import database
 from app.database import init_db
-
-# Load environment variables
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(

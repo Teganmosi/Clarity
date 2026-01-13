@@ -52,9 +52,9 @@ function Integrations({ user }) {
     try {
       setSyncing(platform);
       if (platform === 'hubspot') {
-        await integrationsAPI.syncHubSpot();
+        await integrationsAPI.syncToHubSpot({ sync_all: true });
       } else if (platform === 'pipedrive') {
-        await integrationsAPI.syncPipedrive();
+        await integrationsAPI.syncToPipedrive({ sync_all: true });
       }
       await fetchIntegrations();
       alert('Sync completed successfully');

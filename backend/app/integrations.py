@@ -9,6 +9,11 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+# Load environment variables
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+load_dotenv(dotenv_path=env_path)
 
 from .models import Lead, IntegrationLog
 
@@ -33,6 +38,7 @@ class CRMIntegration:
         self.api_key = api_key
         self.base_url = base_url
         self.enabled = bool(api_key)
+        print(f"DEBUG: CRMIntegration init - api_key: {api_key[:5] if api_key else 'None'}..., enabled: {self.enabled}")
     
     async def create_contact(self, lead: Lead, db: Session) -> Dict:
         """
@@ -144,6 +150,7 @@ class HubSpotIntegration(CRMIntegration):
             api_key: HubSpot API key
         """
         api_key = api_key or os.getenv("HUBSPOT_API_KEY", "")
+        print(f"DEBUG: HubSpotIntegration init - os.getenv('HUBSPOT_API_KEY'): {os.getenv('HUBSPOT_API_KEY', 'None')[:5]}...")
         base_url = "https://api.hubapi.com/crm/v3/objects/contacts"
         super().__init__(api_key, base_url)
     
@@ -190,22 +197,17 @@ class HubSpotIntegration(CRMIntegration):
                 "Content-Type": "application/json"
             }
             
-            # For MVP, we'll mock the API call
-            # In production, uncomment the actual API call:
-            # async with httpx.AsyncClient() as client:
-            #     response = await client.post(
-            #         self.base_url,
-            #         json=contact_data,
-            #         headers=headers,
-            #         timeout=10.0
-            #     )
-            #     response.raise_for_status()
-            #     result = response.json()
-            #     hubspot_id = result["id"]
-            
-            # Mock response for MVP
-            hubspot_id = f"hubspot_{lead.id}_{datetime.now().timestamp()}"
-            result = {"id": hubspot_id}
+            # Actual API call for production
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    self.base_url,
+                    json=contact_data,
+                    headers=headers,
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                result = response.json()
+                hubspot_id = result["id"]
             
             # Update lead with HubSpot ID
             lead.hubspot_id = hubspot_id
@@ -295,19 +297,18 @@ class HubSpotIntegration(CRMIntegration):
                 "Content-Type": "application/json"
             }
             
-            # For MVP, we'll mock the API call
-            # In production, uncomment the actual API call:
-            # async with httpx.AsyncClient() as client:
-            #     response = await client.patch(
-            #         f"{self.base_url}/{lead.hubspot_id}",
-            #         json=contact_data,
-            #         headers=headers,
-            #         timeout=10.0
-            #     )
-            #     response.raise_for_status()
-            #     result = response.json()
+            # Actual API call for production
+            async with httpx.AsyncClient() as client:
+                response = await client.patch(
+                    f"{self.base_url}/{lead.hubspot_id}",
+                    json=contact_data,
+                    headers=headers,
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                result = response.json()
             
-            # Mock response for MVP
+            # Update lead with HubSpot ID
             result = {"id": lead.hubspot_id, "updated": True}
             
             # Log integration

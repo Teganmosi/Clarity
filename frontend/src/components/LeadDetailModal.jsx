@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle } from 'lucide-react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 /**
  * Lead Detail Modal Component
@@ -31,7 +31,7 @@ function LeadDetailModal({ lead, onClose }) {
 
   const getInsights = () => {
     const insights = [];
-    
+
     // Score-based insights
     if (lead.score >= 80) {
       insights.push({
@@ -166,52 +166,83 @@ function LeadDetailModal({ lead, onClose }) {
                 </p>
               </div>
             </div>
-            
-            {/* Score Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                <span>Score Breakdown</span>
+
+            {/* Confidence Badge */}
+            {lead.confidence_level && (
+              <div className="mb-4">
+                <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full ${lead.confidence_level === 'high' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                    lead.confidence_level === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                  }`}>
+                  {lead.confidence_level === 'high' ? <CheckCircle2 size={16} /> :
+                    lead.confidence_level === 'medium' ? <AlertTriangle size={16} /> :
+                      <Info size={16} />}
+                  <span className="text-sm font-medium">
+                    {lead.confidence_label} ({lead.data_points}/{lead.total_factors} factors)
+                  </span>
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm w-24">Engagement</span>
-                  <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-500"
-                      style={{ width: `${Math.min(lead.past_interactions * 10, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {Math.min(lead.past_interactions * 10, 100)}%
-                  </span>
+            )}
+
+            {/* Score Explanation */}
+            {lead.explanation && lead.explanation.top_positive_factors && lead.explanation.top_positive_factors.length > 0 && (
+              <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Why this score?</h4>
+                <div className="space-y-2">
+                  {lead.explanation.top_positive_factors.map((factor, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">✓ {factor.factor}</span>
+                      <span className="font-medium text-green-600 dark:text-green-400">+{factor.contribution} pts</span>
+                    </div>
+                  ))}
+                  {lead.explanation.top_negative_factors && lead.explanation.top_negative_factors.length > 0 && (
+                    <>
+                      {lead.explanation.top_negative_factors.map((factor, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">• {factor.factor}</span>
+                          <span className="font-medium text-red-600 dark:text-red-400">{factor.contribution} pts</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm w-24">Activity</span>
-                  <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
-                      style={{ width: `${Math.min(lead.pages_visited * 5, 100)}%` }}
-                    />
+              </div>
+            )}
+          </div>
+
+          {/* Recommendation Card */}
+          {lead.recommendation && (
+            <div className={`p-6 rounded-xl border-2 animate-slide-in ${lead.recommendation.priority === 'urgent' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
+                lead.recommendation.priority === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
+                  'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+              }`}>
+              <div className="flex items-start space-x-3">
+                <div className="text-3xl">{lead.recommendation.icon}</div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                    Recommended Action
+                  </h3>
+                  <p className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                    {lead.recommendation.action}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {lead.recommendation.reason}
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <span className={`px-3 py-1 rounded-full font-medium ${lead.recommendation.priority === 'urgent' ? 'bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200' :
+                        lead.recommendation.priority === 'medium' ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' :
+                          'bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
+                      }`}>
+                      {lead.recommendation.priority.toUpperCase()} Priority
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Timeline: {lead.recommendation.timeline}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {Math.min(lead.pages_visited * 5, 100)}%
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm w-24">Time on Site</span>
-                  <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
-                      style={{ width: `${Math.min(lead.time_on_site * 5, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {Math.min(lead.time_on_site * 5, 100)}%
-                  </span>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Lead Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -288,13 +319,12 @@ function LeadDetailModal({ lead, onClose }) {
                 {insights.map((insight, index) => (
                   <div
                     key={index}
-                    className={`p-4 rounded-lg border-2 ${
-                      insight.type === 'success'
+                    className={`p-4 rounded-lg border-2 ${insight.type === 'success'
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                         : insight.type === 'warning'
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                    } hover-lift transition-all duration-300`}
+                          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                          : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                      } hover-lift transition-all duration-300`}
                   >
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
@@ -346,17 +376,15 @@ function LeadDetailModal({ lead, onClose }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
             <div>
               <span className="text-gray-500 dark:text-gray-500">Status:</span>{' '}
-              <span className={`font-medium capitalize ${
-                lead.converted ? 'text-green-600' : 'text-gray-900 dark:text-white'
-              }`}>
+              <span className={`font-medium capitalize ${lead.converted ? 'text-green-600' : 'text-gray-900 dark:text-white'
+                }`}>
                 {lead.status}
               </span>
             </div>
             <div>
               <span className="text-gray-500 dark:text-gray-500">Converted:</span>{' '}
-              <span className={`font-medium ${
-                lead.converted ? 'text-green-600' : 'text-gray-900 dark:text-white'
-              }`}>
+              <span className={`font-medium ${lead.converted ? 'text-green-600' : 'text-gray-900 dark:text-white'
+                }`}>
                 {lead.converted ? 'Yes' : 'No'}
               </span>
             </div>

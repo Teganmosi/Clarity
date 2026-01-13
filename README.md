@@ -1,8 +1,13 @@
-# Lead Scoring & Prioritization Engine
+# Clarity - Lead Scoring & Prioritization Engine
+
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)
+![React](https://img.shields.io/badge/React-18+-61DAFB.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 A complete MVP for scoring and prioritizing leads for SMB sales teams using AI/ML. Built with Python + FastAPI (backend) and React + Tailwind CSS (frontend).
 
-## Features
+## 🚀 Features
 
 ### Backend (FastAPI + Python)
 
@@ -23,8 +28,9 @@ A complete MVP for scoring and prioritizing leads for SMB sales teams using AI/M
 - **Analytics Dashboard**: Interactive charts for conversion rates, score distribution, and trends
 - **Integrations Panel**: Configure and sync with HubSpot/Pipedrive
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Dark/Light Mode**: Toggle between themes for better user experience
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 lead-scoring-engine/
@@ -57,7 +63,11 @@ lead-scoring-engine/
 │   │   │   ├── Header.jsx        # Navigation header
 │   │   │   ├── Integrations.jsx  # CRM integrations
 │   │   │   ├── LeadsList.jsx     # Lead management
-│   │   │   └── Login.jsx        # Authentication
+│   │   │   ├── Login.jsx        # Authentication
+│   │   │   ├── LeadDetailModal.jsx # Lead details modal
+│   │   │   └── ThemeToggle.jsx   # Dark/light mode toggle
+│   │   ├── context/
+│   │   │   └── ThemeContext.jsx  # Theme context provider
 │   │   ├── services/
 │   │   │   └── api.js          # API service layer
 │   │   ├── App.jsx
@@ -73,7 +83,7 @@ lead-scoring-engine/
 └── README.md
 ```
 
-## Quick Start
+## 🎯 Quick Start
 
 ### Prerequisites
 
@@ -141,7 +151,7 @@ npm run dev
 
 The dashboard will be available at `http://localhost:5173`
 
-## Usage
+## 📖 Usage
 
 ### 1. Register/Login
 
@@ -163,6 +173,7 @@ The dashboard will be available at `http://localhost:5173`
 - See leads sorted by score (highest first)
 - Filter by source, campaign, status, score category, etc.
 - Sort by score, date, name, or company
+- Click on any lead to view detailed information
 
 ### 4. Analytics Dashboard
 
@@ -188,7 +199,7 @@ The dashboard will be available at `http://localhost:5173`
   - `PIPEDRIVE_API_KEY` for Pipedrive
 - Sync leads to CRM with one click
 
-## API Documentation
+## 🔌 API Documentation
 
 Once the backend is running, visit `http://localhost:8000/docs` for interactive API documentation (Swagger UI).
 
@@ -233,7 +244,7 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 - `GET /integrations/logs` - Get sync logs
 - `GET /integrations/status` - Get integration status
 
-## Lead Scoring Model
+## 🤖 Lead Scoring Model
 
 The MVP uses a Logistic Regression model trained on:
 
@@ -249,9 +260,9 @@ The MVP uses a Logistic Regression model trained on:
 
 ### Score Categories
 
-- **Hot**: Score >= 80 - High priority, immediate follow-up
-- **Warm**: Score 50-79 - Medium priority, nurture
-- **Cold**: Score < 50 - Low priority, monitor
+- **🔥 Hot**: Score >= 80 - High priority, immediate follow-up
+- **🌡️ Warm**: Score 50-79 - Medium priority, nurture
+- **❄️ Cold**: Score < 50 - Low priority, monitor
 
 ### Model Retraining
 
@@ -261,7 +272,7 @@ The model can be retrained as more conversion data becomes available:
 - Or call `POST /leads/retrain-model` API endpoint
 - Requires at least 10 leads with conversion status
 
-## Extending the System
+## 🔧 Extending the System
 
 ### Adding New Scoring Features
 
@@ -303,7 +314,7 @@ Add new components in `frontend/src/components/` and import them in `App.jsx`:
 <Route path="/new-page" element={<NewComponent />} />
 ```
 
-## Environment Variables
+## ⚙️ Environment Variables
 
 ### Backend (.env)
 
@@ -344,14 +355,14 @@ PIPEDRIVE_API_KEY=your-pipedrive-api-key
 VITE_API_URL=http://localhost:8000
 ```
 
-## Sample Data
+## 📊 Sample Data
 
 Sample lead files are provided for testing:
 
 - `sample-leads.csv` - 15 sample leads in CSV format
 - `sample-leads.json` - 10 sample leads in JSON format
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### Backend Issues
 
@@ -393,7 +404,7 @@ rm -rf node_modules
 npm install
 ```
 
-## Production Deployment
+## 🚀 Production Deployment
 
 ### Backend
 
@@ -416,13 +427,37 @@ npm run build
 # Deploy 'dist' directory to Vercel, Netlify, etc.
 ```
 
-## License
+## 🤝 Contributing
 
-MIT License - Feel free to use and modify for your needs.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Support
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Built with FastAPI for the backend API
+- Frontend built with React and Vite
+- Styled with Tailwind CSS
+- Charts powered by Recharts
+- Icons from Lucide React
+
+## 📧 Support
 
 For issues or questions, please refer to the setup guides:
 
 - Backend: `backend/SETUP.md`
 - Frontend: `frontend/SETUP.md`
+
+Or open an issue in the GitHub repository.
+
+---
+
+**Built with ❤️ for sales teams who want to prioritize their leads effectively**

@@ -41,6 +41,7 @@ function LeadsList({ user }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState('csv');
+  const [deletingLeadId, setDeletingLeadId] = useState(null);
 
   useEffect(() => {
     fetchLeads();
@@ -100,12 +101,23 @@ function LeadsList({ user }) {
       return;
     }
 
+    // Prevent multiple simultaneous delete requests for the same lead
+    if (deletingLeadId === id) {
+      return;
+    }
+
     try {
-      await leadsAPI.delete(id);
+      setDeletingLeadId(id);
+      await leadsAPI.deleteLead(id);
       fetchLeads();
     } catch (err) {
       console.error('Error deleting lead:', err);
-      alert('Failed to delete lead');
+      // Only show error if it's not a "Lead not found" error (which means it was already deleted)
+      if (!err.message.includes('Lead not found')) {
+        alert('Failed to delete lead');
+      }
+    } finally {
+      setDeletingLeadId(null);
     }
   };
 
@@ -393,7 +405,8 @@ function LeadsList({ user }) {
                           )}
                           <button
                             onClick={() => handleDelete(lead.id)}
-                            className="p-1 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                            disabled={deletingLeadId === lead.id}
+                            className={`p-1 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded ${deletingLeadId === lead.id ? 'opacity-50 cursor-not-allowed' : 'text-red-600 dark:text-red-400'}`}
                             title="Delete"
                           >
                             <XCircle size={18} />
@@ -637,9 +650,10 @@ function LeadsList({ user }) {
                   handleDelete(selectedLead.id);
                   setShowDetailModal(false);
                 }}
-                className="btn btn-danger flex-1"
+                disabled={deletingLeadId === selectedLead.id}
+                className="btn btn-danger flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Delete Lead
+                {deletingLeadId === selectedLead.id ? 'Deleting...' : 'Delete Lead'}
               </button>
             </div>
           </div>

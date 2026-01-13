@@ -46,6 +46,35 @@ class LeadScoringEngine:
         # Try to load existing model
         self._load_model()
     
+    def _get_numeric(self, value, default=0.0) -> float:
+        """
+        Safely convert a value to float
+        
+        Args:
+            value: Value to convert
+            default: Default value if conversion fails
+            
+        Returns:
+            Float value
+        """
+        if value is None:
+            return default
+        
+        # Handle pandas/numpy NaN
+        if isinstance(value, float) and np.isnan(value):
+            return default
+            
+        # Handle lists/sequences
+        if isinstance(value, (list, tuple, np.ndarray)):
+            if len(value) > 0:
+                return self._get_numeric(value[0], default)
+            return default
+            
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+    
     def _prepare_features(self, leads: List[Dict]) -> pd.DataFrame:
         """
         Prepare features for ML model from lead data
@@ -56,7 +85,19 @@ class LeadScoringEngine:
         Returns:
             DataFrame with prepared features
         """
-        df = pd.DataFrame(leads)
+        # Clean lead data before creating DataFrame
+        cleaned_leads = []
+        for lead in leads:
+            cleaned_lead = {}
+            for key, value in lead.items():
+                # Handle lists/sequences by taking first element or converting to string
+                if isinstance(value, (list, tuple)):
+                    cleaned_lead[key] = str(value[0]) if len(value) > 0 else ''
+                else:
+                    cleaned_lead[key] = value
+            cleaned_leads.append(cleaned_lead)
+        
+        df = pd.DataFrame(cleaned_leads)
         
         # Convert numeric columns to proper numeric types (preserve floats for time_on_site)
         numeric_cols = ['past_interactions', 'pages_visited', 'time_on_site']
@@ -70,6 +111,8 @@ class LeadScoringEngine:
                 # Ensure time_on_site is float
                 elif col == 'time_on_site':
                     df[col] = df[col].astype(float)
+                # Ensure no NaN values remain
+                df[col] = df[col].fillna(0)
         
         # Define feature mappings (adjusted for better score distribution)
         source_weights = {
@@ -312,6 +355,13 @@ class LeadScoringEngine:
             scored_lead['score'] = round(score, 2)
             scored_lead['conversion_probability'] = round(prob, 4)
             scored_lead['score_category'] = self._get_score_category(score)
+            
+            # Add explanation, confidence, and recommendation
+            scored_lead['explanation'] = self._calculate_score_explanation(lead, score)
+            confidence_data = self._calculate_confidence(lead)
+            scored_lead.update(confidence_data)
+            scored_lead['recommendation'] = self._get_recommendation(score, lead)
+            
             scored_leads.append(scored_lead)
         
         return scored_leads
@@ -345,9 +395,13 @@ class LeadScoringEngine:
             score += source_weights.get(lead.get('source'), 0)
             
             # Engagement bonus (reduced multipliers)
-            score += min(lead.get('past_interactions', 0) * 3, 15)
-            score += min(lead.get('pages_visited', 0) * 1.5, 8)
-            score += min(lead.get('time_on_site', 0) * 0.3, 4)
+            past_interactions = self._get_numeric(lead.get('past_interactions'))
+            pages_visited = self._get_numeric(lead.get('pages_visited'))
+            time_on_site = self._get_numeric(lead.get('time_on_site'))
+            
+            score += min(past_interactions * 3, 15)
+            score += min(pages_visited * 1.5, 8)
+            score += min(time_on_site * 0.3, 4)
             
             # Company size bonus (reduced weights)
             company_weights = {
@@ -402,9 +456,231 @@ class LeadScoringEngine:
             scored_lead['score'] = round(score, 2)
             scored_lead['conversion_probability'] = round(score / 100, 4)
             scored_lead['score_category'] = self._get_score_category(score)
+            
+            # Add explanation, confidence, and recommendation
+            scored_lead['explanation'] = self._calculate_score_explanation(lead, score)
+            confidence_data = self._calculate_confidence(lead)
+            scored_lead.update(confidence_data)
+            scored_lead['recommendation'] = self._get_recommendation(score, lead)
+            
             scored_leads.append(scored_lead)
         
         return scored_leads
+    
+    def _calculate_score_explanation(self, lead: Dict, score: float, base_score: float = 30.0) -> Dict:
+        """
+        Calculate detailed score breakdown showing factor contributions
+        
+        Args:
+            lead: Lead dictionary
+            score: Final calculated score
+            base_score: Starting base score
+            
+        Returns:
+            Dictionary with score explanation
+        """
+        factors = []
+        
+        # Source contribution
+        source_weights = {
+            'referral': 15, 'website': 8, 'email': 10, 'paid_ads': 3,
+            'social_media': 3, 'event': 8, 'partner': 12, 'cold_call': 0
+        }
+        source = lead.get('source')
+        if source and source in source_weights:
+            contrib = source_weights[source]
+            if contrib != 0:
+                factors.append({
+                    "factor": f"{source.replace('_', ' ').title()} source",
+                    "contribution": contrib,
+                    "category": "source"
+                })
+        
+        # Campaign contribution
+        campaign_weights = {'decision': 10, 'consideration': 6, 'retention': 4, 'awareness': 2}
+        campaign = lead.get('campaign')
+        if campaign and campaign in campaign_weights:
+            contrib = campaign_weights[campaign]
+            factors.append({
+                "factor": f"{campaign.title()}-stage campaign",
+                "contribution": contrib,
+                "category": "campaign"
+            })
+        
+        # Engagement contributions
+        past_interactions = self._get_numeric(lead.get('past_interactions'))
+        if past_interactions > 0:
+            contrib = min(past_interactions * 3, 15)
+            factors.append({
+                "factor": f"High engagement ({int(past_interactions)} interactions)",
+                "contribution": round(contrib, 1),
+                "category": "engagement"
+            })
+        
+        pages_visited = self._get_numeric(lead.get('pages_visited'))
+        if pages_visited > 0:
+            contrib = min(pages_visited * 1.5, 8)
+            factors.append({
+                "factor": f"Website activity ({int(pages_visited)} pages)",
+                "contribution": round(contrib, 1),
+                "category": "engagement"
+            })
+        
+        time_on_site = self._get_numeric(lead.get('time_on_site'))
+        if time_on_site > 0:
+            contrib = min(time_on_site * 0.3, 4)
+            factors.append({
+                "factor": f"Time on site ({time_on_site:.1f} min)",
+                "contribution": round(contrib, 1),
+                "category": "engagement"
+            })
+        
+        # Company size contribution
+        company_weights = {'enterprise': 12, 'large': 8, 'medium': 4, 'small': 0, 'startup': -3}
+        company_size = lead.get('company_size')
+        if company_size and company_size in company_weights:
+            contrib = company_weights[company_size]
+            if contrib != 0:
+                factors.append({
+                    "factor": f"{company_size.title()} company",
+                    "contribution": contrib,
+                    "category": "company_fit"
+                })
+        
+        # Budget contribution
+        budget_weights = {'enterprise': 12, 'high': 8, 'medium': 4, 'low': -3}
+        budget = lead.get('budget')
+        if budget and budget in budget_weights:
+            contrib = budget_weights[budget]
+            if contrib != 0:
+                factors.append({
+                    "factor": f"{budget.title()} budget",
+                    "contribution": contrib,
+                    "category": "company_fit"
+                })
+        
+        # Email domain quality
+        email = lead.get('email', '')
+        if email and '@' in email:
+            domain = email.split('@')[1].lower()
+            if domain not in ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']:
+                factors.append({
+                    "factor": "Corporate email domain",
+                    "contribution": 8,
+                    "category": "quality"
+                })
+        
+        # Medium contribution
+        medium_weights = {'referral': 8, 'organic': 5, 'direct': 4, 'email': 5, 'cpc': 3, 'cpm': 2}
+        medium = lead.get('medium')
+        if medium and medium in medium_weights:
+            contrib = medium_weights[medium]
+            if contrib > 0:
+                factors.append({
+                    "factor": f"{medium.upper() if medium == 'cpc' or medium == 'cpm' else medium.title()} traffic",
+                    "contribution": contrib,
+                    "category": "source"
+                })
+        
+        # Sort by absolute contribution
+        factors.sort(key=lambda x: abs(x['contribution']), reverse=True)
+        
+        # Calculate percentages
+        total_contrib = sum(abs(f['contribution']) for f in factors)
+        for factor in factors:
+            if total_contrib > 0:
+                factor['percentage'] = f"{abs(factor['contribution']) / total_contrib * 100:.0f}%"
+            else:
+                factor['percentage'] = "0%"
+        
+        positive_factors = [f for f in factors if f['contribution'] > 0][:3]
+        negative_factors = [f for f in factors if f['contribution'] < 0][:3]
+        
+        return {
+            "top_positive_factors": positive_factors,
+            "top_negative_factors": negative_factors,
+            "base_score": base_score,
+            "all_factors": factors
+        }
+    
+    def _calculate_confidence(self, lead: Dict) -> Dict:
+        """
+        Calculate confidence level based on available data
+        
+        Args:
+            lead: Lead dictionary
+            
+        Returns:
+            Dictionary with confidence score and level
+        """
+        # Count available data points (9 total factors)
+        data_points = sum([
+            1 if lead.get('source') else 0,
+            1 if lead.get('campaign') else 0,
+            1 if lead.get('medium') else 0,
+            1 if self._get_numeric(lead.get('past_interactions')) > 0 else 0,
+            1 if self._get_numeric(lead.get('pages_visited')) > 0 else 0,
+            1 if self._get_numeric(lead.get('time_on_site')) > 0 else 0,
+            1 if lead.get('company_size') else 0,
+            1 if lead.get('budget') else 0,
+            1 if lead.get('email') and '@' in lead.get('email') else 0
+        ])
+        
+        confidence_score = data_points / 9.0
+        
+        if confidence_score >= 0.75:
+            confidence_level = 'high'
+            confidence_label = 'High Confidence'
+        elif confidence_score >= 0.5:
+            confidence_level = 'medium'
+            confidence_label = 'Medium Confidence'
+        else:
+            confidence_level = 'low'
+            confidence_label = 'Low Confidence'
+        
+        return {
+            "confidence": round(confidence_score, 2),
+            "confidence_level": confidence_level,
+            "confidence_label": confidence_label,
+            "data_points": data_points,
+            "total_factors": 9
+        }
+    
+    def _get_recommendation(self, score: float, lead: Dict) -> Dict:
+        """
+        Get actionable recommendation based on score and lead data
+        
+        Args:
+            score: Lead score (0-100)
+            lead: Lead dictionary
+            
+        Returns:
+            Dictionary with recommendation details
+        """
+        if score >= 80:
+            return {
+                "priority": "urgent",
+                "action": "Call within 24 hours",
+                "reason": "High conversion probability - immediate follow-up recommended",
+                "icon": "🔥",
+                "timeline": "Today"
+            }
+        elif score >= 50:
+            return {
+                "priority": "medium",
+                "action": "Nurture with email sequence",
+                "reason": "Good potential - needs engagement and relationship building",
+                "icon": "⚡",
+                "timeline": "3-5 days"
+            }
+        else:
+            return {
+                "priority": "low",
+                "action": "Add to drip campaign",
+                "reason": "Early-stage lead - focus on education and awareness",
+                "icon": "❄️",
+                "timeline": "2 weeks"
+            }
     
     def _get_score_category(self, score: float) -> str:
         """
