@@ -362,6 +362,9 @@ class LeadScoringEngine:
             scored_lead.update(confidence_data)
             scored_lead['recommendation'] = self._get_recommendation(score, lead)
             
+            # Add missing data alerts (Phase 2)
+            scored_lead['missing_data'] = self._identify_missing_data(lead)
+            
             scored_leads.append(scored_lead)
         
         return scored_leads
@@ -462,6 +465,9 @@ class LeadScoringEngine:
             confidence_data = self._calculate_confidence(lead)
             scored_lead.update(confidence_data)
             scored_lead['recommendation'] = self._get_recommendation(score, lead)
+            
+            # Add missing data alerts (Phase 2)
+            scored_lead['missing_data'] = self._identify_missing_data(lead)
             
             scored_leads.append(scored_lead)
         
@@ -682,6 +688,222 @@ class LeadScoringEngine:
                 "timeline": "2 weeks"
             }
     
+    def _identify_missing_data(self, lead: Dict) -> List[Dict]:
+        """
+        Identify missing data and calculate potential score improvement
+        
+        Args:
+            lead: Lead dictionary
+            
+        Returns:
+            List of missing fields with impact estimates
+        """
+        missing_alerts = []
+        
+        # Check company size
+        if not lead.get('company_size'):
+            missing_alerts.append({
+                "field": "Company Size",
+                "potential_impact": "+4 to +12 points",
+                "priority": "high",
+                "suggestion": "Ask about company size in first call",
+                "icon": "🏢"
+            })
+        
+        # Check budget
+        if not lead.get('budget'):
+            missing_alerts.append({
+                "field": "Budget",
+                "potential_impact": "+4 to +12 points",
+                "priority": "high",
+                "suggestion": "Qualify budget during discovery",
+                "icon": "💰"
+            })
+        
+        # Check campaign
+        if not lead.get('campaign'):
+            missing_alerts.append({
+                "field": "Campaign Stage",
+                "potential_impact": "+2 to +10 points",
+                "priority": "medium",
+                "suggestion": "Track which campaign stage they're in",
+                "icon": "📊"
+            })
+        
+        # Check medium
+        if not lead.get('medium'):
+            missing_alerts.append({
+                "field": "Traffic Medium",
+                "potential_impact": "+2 to +8 points",
+                "priority": "medium",
+                "suggestion": "Track how they found you (organic, referral, etc.)",
+                "icon": "🔍"
+            })
+        
+        # Check engagement data
+        past_interactions = self._get_numeric(lead.get('past_interactions'))
+        pages_visited = self._get_numeric(lead.get('pages_visited'))
+        time_on_site = self._get_numeric(lead.get('time_on_site'))
+        
+        if past_interactions == 0 and pages_visited == 0 and time_on_site == 0:
+            missing_alerts.append({
+                "field": "Engagement Data",
+                "potential_impact": "+0 to +15 points",
+                "priority": "medium",
+                "suggestion": "Track website visits, email opens, and interactions",
+                "icon": "📈"
+            })
+        
+        # Sort by priority
+        priority_order = {"high": 0, "medium": 1, "low": 2}
+        missing_alerts.sort(key=lambda x: priority_order[x["priority"]])
+        
+        # Return top 3
+        return missing_alerts[:3]
+    
+    def _calculate_comparative_insights(self, lead_score: float, db, user_id: int) -> Optional[Dict]:
+        """
+        Calculate how this lead compares to others
+        
+        Args:
+            lead_score: Score of current lead
+            db: Database session
+            user_id: User ID
+            
+        Returns:
+            Dictionary with comparative insights or None if insufficient data
+        """
+        from .models import Lead
+        
+        # Get all user's leads
+        all_leads = db.query(Lead).filter(
+            Lead.user_id == user_id,
+            Lead.score.isnot(None)
+        ).all()
+        
+        if len(all_leads) < 5:
+            return None
+        
+        # Calculate percentile
+        scores = [l.score for l in all_leads]
+        scores.sort()
+        percentile = (sum(1 for s in scores if s < lead_score) / len(scores)) * 100
+        
+        # Find similar leads (±5 points)
+        similar_leads = [
+            l for l in all_leads 
+            if abs(l.score - lead_score) <= 5 and l.score != lead_score
+        ]
+        
+        # Calculate conversion rate of similar leads
+        similar_converted = sum(1 for l in similar_leads if l.converted)
+        similar_conv_rate = (similar_converted / len(similar_leads)) if similar_leads else 0
+        
+        return {
+            "percentile": round(percentile, 0),
+            "rank_text": f"Top {100-percentile:.0f}%" if percentile > 50 else f"Bottom {percentile:.0f}%",
+            "similar_leads_count": len(similar_leads),
+            "similar_converted": similar_converted,
+            "similar_conversion_rate": round(similar_conv_rate * 100, 1),
+            "total_leads": len(all_leads)
+        }
+    
+    def _calculate_dynamic_thresholds(self, db, user_id: int) -> Dict:
+        """
+        Calculate personalized Hot/Warm/Cold thresholds based on user's data
+        
+        Args:
+            db: Database session
+            user_id: User ID
+            
+        Returns:
+            Dictionary with threshold values and method used
+        """
+        from .models import Lead
+        
+        # Get user's leads with conversion data
+        leads = db.query(Lead).filter(
+            Lead.user_id == user_id,
+            Lead.score.isnot(None)
+        ).all()
+        
+        if len(leads) < 20:  # Need minimum data
+            return {"hot": 80, "warm": 50, "method": "default", "sample_size": len(leads)}
+        
+        # Group by score ranges and calculate conversion rates
+        score_ranges = {}
+        for lead in leads:
+            range_key = int(lead.score // 10) * 10  # 0-9, 10-19, etc.
+            if range_key not in score_ranges:
+                score_ranges[range_key] = {"total": 0, "converted": 0}
+            score_ranges[range_key]["total"] += 1
+            if lead.converted:
+                score_ranges[range_key]["converted"] += 1
+        
+        # Find optimal thresholds
+        hot_threshold = 80
+        warm_threshold = 50
+        
+        for score, data in sorted(score_ranges.items(), reverse=True):
+            if data["total"] >= 5:
+                conv_rate = data["converted"] / data["total"]
+                if conv_rate >= 0.4 and score < hot_threshold:
+                    hot_threshold = score
+                    break
+        
+        for score, data in sorted(score_ranges.items(), reverse=True):
+            if data["total"] >= 5:
+                conv_rate = data["converted"] / data["total"]
+                if conv_rate >= 0.15 and score < hot_threshold:
+                    warm_threshold = score
+                    break
+        
+        return {
+            "hot": hot_threshold,
+            "warm": warm_threshold,
+            "method": "dynamic",
+            "sample_size": len(leads)
+        }
+    
+    def enrich_lead(self, lead_dict: Dict, db, user_id: int) -> Dict:
+        """
+        Enrich lead data with all Phase 1 and 2 scoring enhancements
+        
+        Args:
+            lead_dict: Lead dictionary
+            db: Database session
+            user_id: User ID
+            
+        Returns:
+            Enriched lead dictionary
+        """
+        score = lead_dict.get('score', 0)
+        
+        # Phase 1: Explanation, Confidence, Recommendation
+        lead_dict['explanation'] = self._calculate_score_explanation(lead_dict, score)
+        confidence_data = self._calculate_confidence(lead_dict)
+        lead_dict.update(confidence_data)
+        lead_dict['recommendation'] = self._get_recommendation(score, lead_dict)
+        
+        # Phase 2: Missing Data, Comparative Insights, and Dynamic Thresholds
+        lead_dict['missing_data'] = self._identify_missing_data(lead_dict)
+        lead_dict['comparative_insights'] = self._calculate_comparative_insights(score, db, user_id)
+        
+        # Dynamic Thresholds (Phase 2)
+        thresholds = self._calculate_dynamic_thresholds(db, user_id)
+        lead_dict['thresholds'] = thresholds
+        
+        # Update category if using dynamic thresholds
+        if thresholds['method'] == 'dynamic':
+            if score >= thresholds['hot']:
+                lead_dict['score_category'] = 'hot'
+            elif score >= thresholds['warm']:
+                lead_dict['score_category'] = 'warm'
+            else:
+                lead_dict['score_category'] = 'cold'
+        
+        return lead_dict
+    
     def _get_score_category(self, score: float) -> str:
         """
         Get score category based on score value
@@ -835,3 +1057,27 @@ def retrain_model(db) -> Dict:
         Training metrics
     """
     return scoring_engine.retrain(db)
+
+
+def enrich_lead_data(lead_obj, db, user_id: int) -> Dict:
+    """
+    Enrich a lead database object or dictionary with AI insights
+    
+    Args:
+        lead_obj: Lead database model or dictionary
+        db: Database session
+        user_id: User ID
+        
+    Returns:
+        Enriched lead dictionary
+    """
+    # Convert DB model to dict if needed
+    if hasattr(lead_obj, "__dict__"):
+        lead_dict = {
+            column.name: getattr(lead_obj, column.name)
+            for column in lead_obj.__table__.columns
+        }
+    else:
+        lead_dict = lead_obj.copy()
+    
+    return scoring_engine.enrich_lead(lead_dict, db, user_id)

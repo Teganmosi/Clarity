@@ -26,7 +26,7 @@ from app.schemas import (
     ExportRequest
 )
 from app.auth import get_current_user
-from app.scoring import score_leads, retrain_model
+from app.scoring import score_leads, retrain_model, enrich_lead_data
 from app.notifications import send_lead_notification, send_bulk_lead_notifications
 
 # Create router
@@ -142,8 +142,11 @@ async def list_leads(
     offset = (page - 1) * page_size
     leads = query.offset(offset).limit(page_size).all()
     
+    # Enrich leads with AI insights
+    enriched_leads = [enrich_lead_data(lead, db, current_user.id) for lead in leads]
+    
     return {
-        "leads": leads,
+        "leads": enriched_leads,
         "total": total,
         "page": page,
         "page_size": page_size
@@ -170,7 +173,7 @@ async def get_lead(
             detail="Lead not found"
         )
     
-    return lead
+    return enrich_lead_data(lead, db, current_user.id)
 
 
 @router.put("/{lead_id}", response_model=LeadResponse)
@@ -233,7 +236,7 @@ async def update_lead(
     db.commit()
     db.refresh(lead)
     
-    return lead
+    return enrich_lead_data(lead, db, current_user.id)
 
 
 @router.delete("/{lead_id}", status_code=status.HTTP_204_NO_CONTENT)

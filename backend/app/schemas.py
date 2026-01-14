@@ -93,6 +93,16 @@ class LeadResponse(LeadBase):
     pipedrive_id: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+    
+    # AI Scoring Enhancements (Phase 1 & 2)
+    explanation: Optional[dict] = None
+    confidence_level: Optional[str] = None
+    confidence_label: Optional[str] = None
+    data_points: Optional[int] = None
+    total_factors: Optional[int] = None
+    recommendation: Optional[dict] = None
+    missing_data: Optional[List[dict]] = None
+    comparative_insights: Optional[dict] = None
 
     class Config:
         from_attributes = True

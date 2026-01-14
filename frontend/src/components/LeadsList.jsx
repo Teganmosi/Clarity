@@ -17,6 +17,7 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
+import LeadDetailModal from './LeadDetailModal';
 
 /**
  * Leads List Component
@@ -517,147 +518,10 @@ function LeadsList({ user }) {
 
       {/* Lead Detail Modal */}
       {showDetailModal && selectedLead && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Lead Details</h2>
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Score Card */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-6 mb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Lead Score</p>
-                  <p className={`text-4xl font-bold ${getScoreColor(selectedLead.score)}`}>
-                    {selectedLead.score}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getScoreCategory(selectedLead.score).color}`}>
-                    {getScoreCategory(selectedLead.score).label}
-                  </span>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    {selectedLead.conversion_probability}% conversion probability
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Lead Information */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Contact Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.phone || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Company</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.company}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Lead Details</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {getStatusIcon(selectedLead.status)}
-                      <span className="font-medium text-gray-900 dark:text-gray-200 capitalize">{selectedLead.status}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Source</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.source}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Campaign</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.campaign || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Created</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">
-                      {new Date(selectedLead.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Engagement Metrics</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Website Visits</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.website_visits || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Email Opens</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.email_opens || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Email Clicks</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.email_clicks || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Form Submissions</p>
-                    <p className="font-medium text-gray-900 dark:text-gray-200">{selectedLead.form_submissions || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              {selectedLead.notes && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Notes</h3>
-                  <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                    {selectedLead.notes}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              {selectedLead.status !== 'converted' && (
-                <button
-                  onClick={() => {
-                    handleMarkConverted(selectedLead.id);
-                    setShowDetailModal(false);
-                  }}
-                  className="btn btn-primary flex-1"
-                >
-                  Mark as Converted
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  handleDelete(selectedLead.id);
-                  setShowDetailModal(false);
-                }}
-                disabled={deletingLeadId === selectedLead.id}
-                className="btn btn-danger flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deletingLeadId === selectedLead.id ? 'Deleting...' : 'Delete Lead'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <LeadDetailModal
+          lead={selectedLead}
+          onClose={() => setShowDetailModal(false)}
+        />
       )}
     </div>
   );

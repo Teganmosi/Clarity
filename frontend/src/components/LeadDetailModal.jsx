@@ -171,8 +171,8 @@ function LeadDetailModal({ lead, onClose }) {
             {lead.confidence_level && (
               <div className="mb-4">
                 <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full ${lead.confidence_level === 'high' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                    lead.confidence_level === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
-                      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                  lead.confidence_level === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                    'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                   }`}>
                   {lead.confidence_level === 'high' ? <CheckCircle2 size={16} /> :
                     lead.confidence_level === 'medium' ? <AlertTriangle size={16} /> :
@@ -208,13 +208,48 @@ function LeadDetailModal({ lead, onClose }) {
                 </div>
               </div>
             )}
+
+            {/* Comparative Insights (Phase 2) */}
+            {lead.comparative_insights && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Comparative Ranking</h4>
+                  <div className="flex items-center text-xs font-medium text-blue-600 dark:text-blue-400">
+                    <TrendingUp size={14} className="mr-1" />
+                    Relative to {lead.comparative_insights.total_leads} leads
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Percentile Rank</p>
+                    <p className="text-xl font-bold text-blue-900 dark:text-blue-200">
+                      {lead.comparative_insights.rank_text}
+                    </p>
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-1">
+                      Scores higher than {lead.comparative_insights.percentile}% of leads
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase mb-1">Similar Leads</p>
+                    <p className="text-xl font-bold text-purple-900 dark:text-purple-200">
+                      {lead.comparative_insights.similar_conversion_rate}%
+                    </p>
+                    <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
+                      Conversion rate for ±5 score range
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Recommendation Card */}
           {lead.recommendation && (
             <div className={`p-6 rounded-xl border-2 animate-slide-in ${lead.recommendation.priority === 'urgent' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                lead.recommendation.priority === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
-                  'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+              lead.recommendation.priority === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
+                'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
               }`}>
               <div className="flex items-start space-x-3">
                 <div className="text-3xl">{lead.recommendation.icon}</div>
@@ -230,8 +265,8 @@ function LeadDetailModal({ lead, onClose }) {
                   </p>
                   <div className="flex items-center space-x-4 text-sm">
                     <span className={`px-3 py-1 rounded-full font-medium ${lead.recommendation.priority === 'urgent' ? 'bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200' :
-                        lead.recommendation.priority === 'medium' ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' :
-                          'bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
+                      lead.recommendation.priority === 'medium' ? 'bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200' :
+                        'bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
                       }`}>
                       {lead.recommendation.priority.toUpperCase()} Priority
                     </span>
@@ -240,6 +275,44 @@ function LeadDetailModal({ lead, onClose }) {
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Missing Data Alerts (Phase 2) */}
+          {lead.missing_data && lead.missing_data.length > 0 && (
+            <div className="card border-2 border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10 animate-slide-in">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <AlertTriangle className="mr-2 text-yellow-600" size={20} />
+                Improve This Score
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Collecting the following data could significantly improve this lead's score:
+              </p>
+              <div className="space-y-3">
+                {lead.missing_data.map((alert, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                    <span className="text-2xl">{alert.icon}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {alert.field}
+                        </p>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${alert.priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                          }`}>
+                          {alert.priority.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {alert.suggestion}
+                      </p>
+                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                        Potential impact: {alert.potential_impact}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -320,10 +393,10 @@ function LeadDetailModal({ lead, onClose }) {
                   <div
                     key={index}
                     className={`p-4 rounded-lg border-2 ${insight.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : insight.type === 'warning'
-                          ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                          : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                      : insight.type === 'warning'
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                       } hover-lift transition-all duration-300`}
                   >
                     <div className="flex items-start space-x-3">
