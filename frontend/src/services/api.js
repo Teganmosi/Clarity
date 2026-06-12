@@ -636,6 +636,25 @@ export const multichannelAPI = {
   },
 };
 
+// Conversation API
+export const conversationAPI = {
+  send: async (leadId, message, channel = 'chat') => {
+    const params = new URLSearchParams({ lead_id: leadId, message, channel });
+    return apiRequest(`/conversation/send?${params}`, { method: 'POST' });
+  },
+  get: async (leadId) => {
+    return apiRequest(`/conversation/${leadId}`);
+  },
+  list: async (status = null) => {
+    let url = '/conversation/';
+    if (status) url += `?status=${status}`;
+    return apiRequest(url);
+  },
+  handoff: async (conversationId) => {
+    return apiRequest(`/conversation/handoff/${conversationId}`, { method: 'POST' });
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
@@ -647,6 +666,7 @@ export const api = {
   workflowTemplates: workflowTemplatesAPI,
   outreach: outreachAPI,
   multichannel: multichannelAPI,
+  conversation: conversationAPI,
 };
 
 export default api;

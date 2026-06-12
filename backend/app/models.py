@@ -173,6 +173,18 @@ class EmailOutreach(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Conversation(Base):
+    __tablename__ = "conversations"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    channel = Column(String(20), default="chat")
+    messages = Column(JSON, default=list)
+    bant_scores = Column(JSON, default=dict)
+    status = Column(String(20), default="active")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
 class IntegrationLog(Base):
     """
     Log of CRM integration activities

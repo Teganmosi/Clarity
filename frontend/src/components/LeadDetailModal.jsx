@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone } from 'lucide-react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone, Bot } from 'lucide-react';
 import { api } from '../services/api';
 
 /**
@@ -10,12 +10,30 @@ function LeadDetailModal({ lead, onClose }) {
   const [outreachHistory, setOutreachHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showOutreach, setShowOutreach] = useState(false);
+  const [conversation, setConversation] = useState(null);
+  const [loadingConv, setLoadingConv] = useState(false);
+  const [showConv, setShowConv] = useState(false);
 
   useEffect(() => {
     if (showOutreach && lead?.id) {
       loadOutreachHistory();
     }
-  }, [showOutreach, lead?.id]);
+    if (showConv && lead?.id) {
+      loadConversation();
+    }
+  }, [showOutreach, showConv, lead?.id]);
+
+  const loadConversation = async () => {
+    try {
+      setLoadingConv(true);
+      const data = await api.conversation.get(lead.id);
+      setConversation(data?.conversation || null);
+    } catch (err) {
+      console.error('Error loading conversation:', err);
+    } finally {
+      setLoadingConv(false);
+    }
+  };
 
   const loadOutreachHistory = async () => {
     try {
@@ -669,6 +687,61 @@ function LeadDetailModal({ lead, onClose }) {
                     </div>
                     );
                   })}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Conversation AI */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.48s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <Bot size={20} className="text-primary-600" />
+                AI Conversation
+              </h3>
+              <button onClick={() => setShowConv(!showConv)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showConv ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showConv && (
+              loadingConv ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading conversation...</p>
+              ) : !conversation ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No AI conversation for this lead. Start one in Conversation Hub.</p>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {conversation.bant_scores && (
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded text-xs">
+                        <span className="text-gray-500">Budget:</span>{' '}
+                        <span className="font-medium text-gray-900 dark:text-white">{conversation.bant_scores.budget || 'Unknown'}</span>
+                      </div>
+                      <div className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded text-xs">
+                        <span className="text-gray-500">Authority:</span>{' '}
+                        <span className="font-medium text-gray-900 dark:text-white">{conversation.bant_scores.authority || 'Unknown'}</span>
+                      </div>
+                      <div className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded text-xs">
+                        <span className="text-gray-500">Need:</span>{' '}
+                        <span className="font-medium text-gray-900 dark:text-white">{conversation.bant_scores.need || '?'}/10</span>
+                      </div>
+                      <div className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded text-xs">
+                        <span className="text-gray-500">Timeline:</span>{' '}
+                        <span className="font-medium text-gray-900 dark:text-white">{conversation.bant_scores.timeline || 'Unknown'}</span>
+                      </div>
+                    </div>
+                  )}
+                  {conversation.status === 'handed_off' && (
+                    <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-700 dark:text-red-300 text-center">
+                      Handed off to human agent
+                    </div>
+                  )}
+                  {(conversation.messages || []).slice(-4).map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`p-2 rounded-lg text-xs max-w-[85%] ${msg.role === 'user' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
+                        {msg.content?.substring(0, 120)}{msg.content?.length > 120 ? '...' : ''}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )
             )}

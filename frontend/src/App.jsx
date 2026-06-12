@@ -10,6 +10,7 @@ import AnalyticsDashboard from './views/AnalyticsDashboard';
 import WorkflowBuilder from './components/WorkflowBuilder';
 import OutreachCenter from './views/OutreachCenter';
 import SuppressionManager from './components/SuppressionManager';
+import ConversationHub from './views/ConversationHub';
 import Header from './components/Header';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -70,6 +71,7 @@ function App() {
               <Route path="/workflows" element={<WorkflowBuilder user={user} />} />
               <Route path="/outreach" element={<OutreachCenter user={user} />} />
               <Route path="/suppressions" element={<SuppressionManager user={user} />} />
+              <Route path="/conversations" element={<ConversationHub user={user} />} />
             </Routes>
           </main>
         </div>
