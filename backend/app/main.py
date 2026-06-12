@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 import logging
 
 # Import routers
-from app.routers import auth, leads, analytics, integrations
+from app.routers import auth, leads, analytics, integrations, enrichment
 
 # Import database
 from app.database import init_db
@@ -124,6 +124,7 @@ app.include_router(auth.router)
 app.include_router(leads.router)
 app.include_router(analytics.router)
 app.include_router(integrations.router)
+app.include_router(enrichment.router)
 
 
 # Run the application

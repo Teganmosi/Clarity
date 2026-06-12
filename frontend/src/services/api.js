@@ -424,11 +424,49 @@ export const integrationsAPI = {
   },
 };
 
+// Enrichment API
+export const enrichmentAPI = {
+  /**
+   * Trigger enrichment for a single lead
+   */
+  enrichLead: async (leadId) => {
+    return apiRequest(`/enrichment/${leadId}/enrich`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Trigger enrichment for all unenriched leads
+   */
+  bulkEnrich: async () => {
+    return apiRequest('/enrichment/bulk/enrich', {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Refresh enrichment for a lead
+   */
+  refreshEnrichment: async (leadId) => {
+    return apiRequest(`/enrichment/${leadId}/refresh`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get enrichment summary/status
+   */
+  getEnrichmentSummary: async () => {
+    return apiRequest('/enrichment/status/summary');
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
   analytics: analyticsAPI,
   integrations: integrationsAPI,
+  enrichment: enrichmentAPI,
 };
 
 export default api;

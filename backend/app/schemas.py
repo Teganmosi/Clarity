@@ -218,6 +218,42 @@ class APIKeyAuth(BaseModel):
     api_key: str
 
 
+# Enrichment Schemas (Sprint 1)
+class LeadEnrichmentBase(BaseModel):
+    technologies: Optional[List[str]] = []
+    funding_stage: Optional[str] = None
+    funding_amount: Optional[int] = None
+    employee_count: Optional[int] = None
+    company_description: Optional[str] = None
+    logo_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    twitter_url: Optional[str] = None
+    intent_score: Optional[int] = 0
+    intent_signals: Optional[List[dict]] = []
+
+
+class LeadEnrichmentCreate(LeadEnrichmentBase):
+    pass
+
+
+class LeadWithEnrichment(LeadResponse, LeadEnrichmentBase):
+    enriched_at: Optional[datetime] = None
+    enrichment_source: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class EnrichmentTriggerResponse(BaseModel):
+    message: str
+    lead_id: int
+
+
+class BulkEnrichmentTriggerResponse(BaseModel):
+    message: str
+    count: int
+
+
 # Filter Schemas
 class LeadFilter(BaseModel):
     """Schema for lead filtering"""

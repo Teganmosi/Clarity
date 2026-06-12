@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { leadsAPI } from '../services/api';
+import { leadsAPI, enrichmentAPI } from '../services/api';
 import {
   Search,
   Filter,
@@ -175,6 +175,16 @@ function LeadsList({ user }) {
       alert('Failed to export leads');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleEnrich = async (leadId) => {
+    try {
+      await enrichmentAPI.enrichLead(leadId);
+      alert('Enrichment started for lead. Refresh to see updated data.');
+    } catch (err) {
+      console.error('Error enriching lead:', err);
+      alert('Failed to start enrichment');
     }
   };
 
@@ -404,6 +414,13 @@ function LeadsList({ user }) {
                               <CheckCircle size={18} />
                             </button>
                           )}
+                          <button
+                            onClick={() => handleEnrich(lead.id)}
+                            className="p-1 text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded"
+                            title="Enrich Lead Data"
+                          >
+                            <TrendingUp size={18} />
+                          </button>
                           <button
                             onClick={() => handleDelete(lead.id)}
                             disabled={deletingLeadId === lead.id}

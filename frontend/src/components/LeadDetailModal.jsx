@@ -351,6 +351,69 @@ function LeadDetailModal({ lead, onClose }) {
             </div>
           </div>
 
+          {/* Company Intelligence (Enriched Data) */}
+          {(lead.technologies || lead.funding_stage || lead.employee_count || lead.enriched_at) && (
+            <div className="card animate-scale-in" style={{ animationDelay: '0.25s' }}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+                <Building2 size={20} className="text-primary-600" />
+                Company Intelligence
+                {lead.enriched_at && (
+                  <span className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                    Enriched
+                  </span>
+                )}
+                {!lead.enriched_at && (
+                  <span className="ml-2 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-xs font-medium">
+                    Not Enriched
+                  </span>
+                )}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {lead.technologies && lead.technologies.length > 0 && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Tech Stack</p>
+                    <div className="flex flex-wrap gap-1">
+                      {lead.technologies.slice(0, 8).map((tech, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded text-xs">
+                          {tech}
+                        </span>
+                      ))}
+                      {lead.technologies.length > 8 && (
+                        <span className="px-2 py-0.5 text-xs text-gray-500">+{lead.technologies.length - 8} more</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {lead.employee_count && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Employees</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.employee_count.toLocaleString()}</p>
+                  </div>
+                )}
+                {lead.funding_stage && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Funding Stage</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.funding_stage}</p>
+                    {lead.funding_amount && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">${(lead.funding_amount / 1000000).toFixed(1)}M raised</p>
+                    )}
+                  </div>
+                )}
+                {lead.company_description && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg md:col-span-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">About</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{lead.company_description}</p>
+                  </div>
+                )}
+              </div>
+              {lead.enriched_at && (
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  Enriched via {lead.enrichment_source || 'external API'} on {new Date(lead.enriched_at).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Engagement Metrics */}
           <div className="card animate-scale-in" style={{ animationDelay: '0.3s' }}>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">

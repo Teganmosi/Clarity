@@ -2,7 +2,7 @@
 Database models for the Lead Scoring Engine
 """
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
@@ -73,6 +73,26 @@ class Lead(Base):
     hubspot_id = Column(String(50))
     pipedrive_id = Column(String(50))
     
+    # Enrichment Data (Sprint 1: API Integration Framework)
+    technologies = Column(JSON, default=list)
+    funding_stage = Column(String(50))
+    funding_amount = Column(Integer)
+    employee_count = Column(Integer)
+    company_description = Column(Text)
+    logo_url = Column(String(500))
+    linkedin_url = Column(String(500))
+    twitter_url = Column(String(500))
+
+    # Intent Signals (Sprint 2)
+    intent_score = Column(Integer, default=0)
+    intent_signals = Column(JSON, default=list)
+    last_intent_update = Column(DateTime(timezone=True))
+
+    # Enrichment Metadata
+    enriched_at = Column(DateTime(timezone=True))
+    enrichment_source = Column(String(50))
+    enrichment_data = Column(JSON, default=dict)
+
     # Metadata
     notes = Column(Text)
     tags = Column(Text)  # Comma-separated tags

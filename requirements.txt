@@ -22,6 +22,13 @@ python-dotenv==1.0.0
 # CORS
 python-cors==1.0.0
 
+# Rate limiting & retry
+tenacity==8.2.3
+
+# Job Queue (Sprint 2+)
+redis==5.0.1
+celery==5.3.4
+
 # Email notifications
 
 # HTTP client for integrations

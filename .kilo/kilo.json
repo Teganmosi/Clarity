@@ -1,0 +1,22 @@
+{
+  "commands": {
+    "start": {
+      "description": "Start backend and frontend dev servers",
+      "command": "Start-Process powershell -ArgumentList \"-NoExit -Command cd $(pwd)\\backend; python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000\"; Start-Process powershell -ArgumentList \"-NoExit -Command cd $(pwd)\\frontend; npm run dev\""
+    },
+    "test": {
+      "description": "Run tests",
+      "command": "cd backend; python -m pytest"
+    },
+    "progress": {
+      "description": "Show current progress",
+      "command": "Get-Content PROGRESS.md"
+    }
+  },
+  "agents": {
+    "transformer": {
+      "description": "Agent responsible for executing the agentic transformation plan",
+      "instructions": "Follow AGENTIC_TRANSFORMATION_PLAN.md for the strategic roadmap. Follow SPRINT1_QUICKSTART.md for Sprint 1 implementation details. Document all progress in PROGRESS.md."
+    }
+  }
+}
