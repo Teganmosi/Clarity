@@ -468,15 +468,25 @@ export const enrichmentAPI = {
   },
 };
 
+// Workflow Templates API
+export const workflowTemplatesAPI = {
+  listTemplates: async () => {
+    return apiRequest('/workflow-templates/');
+  },
+  getTemplate: async (templateId) => {
+    return apiRequest(`/workflow-templates/${templateId}`);
+  },
+};
+
 // Workflow API
 export const workflowAPI = {
   /**
    * Create a new workflow rule
    */
-  createRule: async (name, triggerField, triggerOperator, triggerValue, actionType, actionParams = {}) => {
+  createRule: async (name, triggerField, triggerOperator, triggerValue, actionType, actionParams = {}, delayMinutes = 0) => {
     const params = new URLSearchParams({
       name, trigger_field: triggerField, trigger_operator: triggerOperator,
-      trigger_value: triggerValue, action_type: actionType,
+      trigger_value: triggerValue, action_type: actionType, delay_minutes: delayMinutes,
     });
     return apiRequest(`/workflows/rules?${params}`, {
       method: 'POST',
@@ -508,6 +518,27 @@ export const workflowAPI = {
     return apiRequest(`/workflows/rules/${ruleId}`, {
       method: 'DELETE',
     });
+  },
+
+  /**
+   * Get execution logs
+   */
+  getLogs: async () => {
+    return apiRequest('/workflows/logs');
+  },
+
+  /**
+   * Get execution logs for a specific rule
+   */
+  getLogsByRule: async (ruleId) => {
+    return apiRequest(`/workflows/logs/${ruleId}`);
+  },
+
+  /**
+   * Clear execution logs
+   */
+  clearLogs: async () => {
+    return apiRequest('/workflows/logs/clear', { method: 'POST' });
   },
 };
 
@@ -560,6 +591,7 @@ export const api = {
   enrichment: enrichmentAPI,
   intent: intentAPI,
   workflows: workflowAPI,
+  workflowTemplates: workflowTemplatesAPI,
 };
 
 export default api;
