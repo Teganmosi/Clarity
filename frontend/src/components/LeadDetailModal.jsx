@@ -1,11 +1,34 @@
-import React from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles } from 'lucide-react';
+import { api } from '../services/api';
 
 /**
  * Lead Detail Modal Component
  * Shows comprehensive lead information with score breakdown and insights
  */
 function LeadDetailModal({ lead, onClose }) {
+  const [outreachHistory, setOutreachHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showOutreach, setShowOutreach] = useState(false);
+
+  useEffect(() => {
+    if (showOutreach && lead?.id) {
+      loadOutreachHistory();
+    }
+  }, [showOutreach, lead?.id]);
+
+  const loadOutreachHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      const data = await api.outreach.getHistory(lead.id);
+      setOutreachHistory(data?.history || []);
+    } catch (err) {
+      console.error('Error loading outreach history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   if (!lead) return null;
 
   const getScoreColor = (score) => {
@@ -603,6 +626,52 @@ function LeadDetailModal({ lead, onClose }) {
               </div>
             </div>
           )}
+
+          {/* Outreach History */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.45s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <Send size={20} className="text-primary-600" />
+                Outreach History
+              </h3>
+              <button onClick={() => setShowOutreach(!showOutreach)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showOutreach ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showOutreach && (
+              loadingHistory ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+              ) : outreachHistory.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No outreach history for this lead.</p>
+              ) : (
+                <div className="space-y-2">
+                  {outreachHistory.map((h) => (
+                    <div key={h.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-3">
+                        {h.status === 'sent' ? <Mail size={16} className="text-green-600" /> :
+                         h.status === 'opened' ? <CheckCircle2 size={16} className="text-blue-600" /> :
+                         <FileText size={16} className="text-yellow-600" />}
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{h.subject}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {h.status} · {h.ai_model_used} · {h.created_at ? new Date(h.created_at).toLocaleString() : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                        h.status === 'sent' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' :
+                        h.status === 'opened' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' :
+                        h.status === 'replied' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700' :
+                        'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700'
+                      }`}>
+                        {h.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
 
           {/* Notes */}
           {lead.notes && (

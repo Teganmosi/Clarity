@@ -583,6 +583,26 @@ export const intentAPI = {
   },
 };
 
+// Outreach API
+export const outreachAPI = {
+  generateDraft: async (leadId, templateId = null) => {
+    let url = `/outreach/generate-draft?lead_id=${leadId}`;
+    if (templateId) url += `&template_id=${templateId}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  send: async (outreachId, recipientEmail) => {
+    return apiRequest(`/outreach/send?outreach_id=${outreachId}&recipient_email=${encodeURIComponent(recipientEmail)}`, {
+      method: 'POST',
+    });
+  },
+  getTemplates: async () => {
+    return apiRequest('/outreach/templates');
+  },
+  getHistory: async (leadId) => {
+    return apiRequest(`/outreach/history/${leadId}`);
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
@@ -592,6 +612,7 @@ export const api = {
   intent: intentAPI,
   workflows: workflowAPI,
   workflowTemplates: workflowTemplatesAPI,
+  outreach: outreachAPI,
 };
 
 export default api;

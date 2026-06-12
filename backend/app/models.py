@@ -126,6 +126,19 @@ class NotificationLog(Base):
     sent_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class EmailOutreach(Base):
+    __tablename__ = "email_outreach"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    subject = Column(String(200))
+    body = Column(Text)
+    status = Column(String(20), default="draft")
+    sent_at = Column(DateTime(timezone=True))
+    opened_at = Column(DateTime(timezone=True))
+    ai_model_used = Column(String(50))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class IntegrationLog(Base):
     """
     Log of CRM integration activities

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart3, Settings, GitBranch, TrendingUp, LogOut, User, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Settings, GitBranch, TrendingUp, Send, LogOut, User, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 function Header({ user, onLogout }) {
@@ -14,6 +14,7 @@ function Header({ user, onLogout }) {
     { path: '/integrations', label: 'Integrations', icon: Settings },
     { path: '/analytics-dashboard', label: 'Forecast', icon: TrendingUp },
     { path: '/workflows', label: 'Workflows', icon: GitBranch },
+    { path: '/outreach', label: 'Outreach', icon: Send },
   ];
 
   const closeMenu = () => setIsMenuOpen(false);

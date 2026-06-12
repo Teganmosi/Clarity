@@ -29,6 +29,10 @@ tenacity==8.2.3
 redis==5.0.1
 celery==5.3.4
 
+# Email outreach (Sprint 5)
+openai==1.12.0
+aiosmtplib==3.0.2
+
 # Email notifications
 
 # HTTP client for integrations
