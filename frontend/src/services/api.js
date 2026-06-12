@@ -468,12 +468,41 @@ export const enrichmentAPI = {
   },
 };
 
+// Intent API
+export const intentAPI = {
+  /**
+   * Analyze intent for a single lead
+   */
+  analyzeIntent: async (leadId) => {
+    return apiRequest(`/intent/analyze/${leadId}`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get high-priority leads by intent score threshold
+   */
+  getHighPriority: async (threshold = 75) => {
+    return apiRequest(`/intent/high-priority?threshold=${threshold}`);
+  },
+
+  /**
+   * Analyze intent for all leads
+   */
+  analyzeAll: async () => {
+    return apiRequest('/intent/analyze-all', {
+      method: 'POST',
+    });
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
   analytics: analyticsAPI,
   integrations: integrationsAPI,
   enrichment: enrichmentAPI,
+  intent: intentAPI,
 };
 
 export default api;

@@ -73,6 +73,11 @@ class Lead(Base):
     hubspot_id = Column(String(50))
     pipedrive_id = Column(String(50))
     
+    # Intent Detection (Sprint 2: Intent Detection Engine)
+    intent_score = Column(Integer, default=0)
+    last_intent_check = Column(DateTime(timezone=True))
+    intent_signals = Column(JSON, default=list)
+
     # Enrichment Data (Sprint 1: API Integration Framework)
     technologies = Column(JSON, default=list)              # Tech stack array
     funding_stage = Column(String(50))                     # Seed, Series A, etc.

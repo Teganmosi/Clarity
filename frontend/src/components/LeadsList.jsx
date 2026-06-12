@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { leadsAPI, enrichmentAPI } from '../services/api';
+import { leadsAPI, enrichmentAPI, intentAPI } from '../services/api';
 import {
   Search,
   Filter,
@@ -188,6 +188,12 @@ function LeadsList({ user }) {
     }
   };
 
+  const getIntentBadge = (score) => {
+    if (score >= 75) return { label: 'High Intent', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' };
+    if (score >= 40) return { label: 'Medium Intent', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' };
+    return { label: 'Low Intent', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' };
+  };
+
   const getScoreCategory = (score) => {
     if (score >= 80) return { label: 'Hot', color: 'badge-hot' };
     if (score >= 50) return { label: 'Warm', color: 'badge-warm' };
@@ -346,7 +352,10 @@ function LeadsList({ user }) {
                     <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Industry
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => handleSort('score')}>
+                      <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                        Intent
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => handleSort('score')}>
                       Score {sortBy === 'score' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
@@ -379,6 +388,17 @@ function LeadsList({ user }) {
                       </td>
                       <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-600 dark:text-gray-400">{lead.industry}</div>
+                      </td>
+                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                        {lead.intent_score !== undefined && lead.intent_score !== null ? (
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getIntentBadge(lead.intent_score).color}`}>
+                            {getIntentBadge(lead.intent_score).label} ({lead.intent_score})
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                            Not scored
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getScoreCategory(lead.score).color}`}>

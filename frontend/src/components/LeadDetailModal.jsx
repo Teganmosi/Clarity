@@ -351,6 +351,63 @@ function LeadDetailModal({ lead, onClose }) {
             </div>
           </div>
 
+          {/* Intent Signals */}
+          {lead.intent_signals && lead.intent_signals.length > 0 && (
+            <div className="card animate-scale-in" style={{ animationDelay: '0.22s' }}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+                <TrendingUp size={20} className="text-primary-600" />
+                Intent Signals
+                {lead.intent_score >= 75 && (
+                  <span className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                    High Intent ({lead.intent_score})
+                  </span>
+                )}
+                {lead.intent_score >= 40 && lead.intent_score < 75 && (
+                  <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-xs font-medium">
+                    Medium Intent ({lead.intent_score})
+                  </span>
+                )}
+                {lead.intent_score < 40 && (
+                  <span className="ml-2 px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-xs font-medium">
+                    Low Intent ({lead.intent_score})
+                  </span>
+                )}
+              </h3>
+              <div className="space-y-3">
+                {lead.intent_signals.map((signal, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className={`w-2 h-2 mt-2 rounded-full flex-shrink-0 ${
+                      signal.severity === 'high' ? 'bg-red-500' :
+                      signal.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                    }`} />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-gray-900 dark:text-white capitalize">
+                          {signal.type.replace(/_/g, ' ')}
+                        </p>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          signal.severity === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                          signal.severity === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                          'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        }`}>
+                          {signal.severity.toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {signal.detail}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {lead.last_intent_check && (
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  Last analyzed: {new Date(lead.last_intent_check).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Company Intelligence (Enriched Data) */}
           {(lead.technologies || lead.funding_stage || lead.employee_count || lead.last_enriched_at) && (
             <div className="card animate-scale-in" style={{ animationDelay: '0.25s' }}>
