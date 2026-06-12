@@ -655,6 +655,73 @@ export const conversationAPI = {
   },
 };
 
+// Scheduler API
+export const schedulerAPI = {
+  getSlots: async (date, duration = 30, timezone = 'UTC') => {
+    return apiRequest(`/scheduler/slots?date=${date}&duration=${duration}&timezone=${timezone}`);
+  },
+  book: async (leadId, slotUtc, duration = 30, timezone = 'UTC') => {
+    const params = new URLSearchParams({ lead_id: leadId, slot_utc: slotUtc, duration, timezone });
+    return apiRequest(`/scheduler/book?${params}`, { method: 'POST' });
+  },
+  getLeadMeetings: async (leadId) => {
+    return apiRequest(`/scheduler/meetings/${leadId}`);
+  },
+  cancel: async (meetingId) => {
+    return apiRequest(`/scheduler/cancel/${meetingId}`, { method: 'POST' });
+  },
+  getUpcoming: async (filter = 'all') => {
+    return apiRequest(`/scheduler/upcoming?filter=${filter}`);
+  },
+};
+
+// Orchestration API
+export const orchestrationAPI = {
+  run: async (leadId, forceStage = null) => {
+    let url = `/orchestration/run/${leadId}`;
+    if (forceStage) url += `?force_stage=${forceStage}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  getStatus: async () => {
+    return apiRequest('/orchestration/status');
+  },
+  getLogs: async (leadId) => {
+    return apiRequest(`/orchestration/logs/${leadId}`);
+  },
+  getLeads: async (stage = null) => {
+    let url = '/orchestration/leads';
+    if (stage) url += `?stage=${stage}`;
+    return apiRequest(url);
+  },
+};
+
+// Learning API
+export const learningAPI = {
+  getInsights: async () => {
+    return apiRequest('/learning/insights');
+  },
+  optimize: async (dryRun = true) => {
+    return apiRequest(`/learning/optimize?dry_run=${dryRun}`, { method: 'POST' });
+  },
+  listABTests: async () => {
+    return apiRequest('/learning/ab-tests');
+  },
+  createABTest: async (name, aSubject, bSubject, aBody = '', bBody = '') => {
+    const params = new URLSearchParams({ name, variant_a_subject: aSubject, variant_b_subject: bSubject, variant_a_body: aBody, variant_b_body: bBody });
+    return apiRequest(`/learning/ab-tests/create?${params}`, { method: 'POST' });
+  },
+  getABTestWinner: async (testId) => {
+    return apiRequest(`/learning/ab-tests/${testId}/winner`);
+  },
+  getLeadOutcomes: async (leadId) => {
+    return apiRequest(`/learning/outcomes/${leadId}`);
+  },
+  logOutcome: async (leadId, actionId, outcomeType, value = 1.0) => {
+    const params = new URLSearchParams({ lead_id: leadId, action_id: actionId, outcome_type: outcomeType, value });
+    return apiRequest(`/learning/outcome?${params}`, { method: 'POST' });
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
@@ -667,6 +734,9 @@ export const api = {
   outreach: outreachAPI,
   multichannel: multichannelAPI,
   conversation: conversationAPI,
+  scheduler: schedulerAPI,
+  orchestration: orchestrationAPI,
+  learning: learningAPI,
 };
 
 export default api;

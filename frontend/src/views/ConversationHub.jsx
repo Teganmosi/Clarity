@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
-import { Send, MessageCircle, User, Bot, AlertTriangle, Phone, X, ChevronRight, DollarSign, Shield, Target, Clock, ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
+import { Send, MessageCircle, User, Bot, AlertTriangle, Phone, X, ChevronRight, DollarSign, Shield, Target, Clock, ThumbsUp, ThumbsDown, Minus, Calendar as CalendarIcon, CheckCircle } from 'lucide-react';
 
 function ConversationHub({ user }) {
   const [conversations, setConversations] = useState([]);
@@ -11,6 +11,11 @@ function ConversationHub({ user }) {
   const [sending, setSending] = useState(false);
   const [bant, setBant] = useState(null);
   const [handoffAlert, setHandoffAlert] = useState(false);
+  const [showSlotPicker, setShowSlotPicker] = useState(false);
+  const [slots, setSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [bookingResult, setBookingResult] = useState(null);
   const chatEnd = useRef(null);
 
   useEffect(() => {
@@ -191,7 +196,11 @@ function ConversationHub({ user }) {
               </div>
 
               {activeConv.status !== 'handed_off' ? (
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <button onClick={openSlotPicker}
+                    className="btn btn-secondary w-full flex items-center justify-center gap-2 text-sm py-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <CalendarIcon size={16} /> Schedule Meeting
+                  </button>
                   <div className="flex gap-2">
                     <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                       placeholder="Type your message..."
@@ -252,6 +261,105 @@ function ConversationHub({ user }) {
         </div>
       </div>
     </div>
+  );
+}
+
+  const openSlotPicker = async () => {
+    if (!activeConv) return;
+    setShowSlotPicker(true);
+    setSelectedSlot(null);
+    setBookingResult(null);
+    setLoadingSlots(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const data = await api.scheduler.getSlots(today, 30, 'UTC');
+      setSlots(data?.slots || []);
+    } catch (err) {
+      console.error('Error loading slots:', err);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const bookSlot = async () => {
+    if (!selectedSlot || !activeConv) return;
+    try {
+      const data = await api.scheduler.book(activeConv.lead_id, selectedSlot.utc, 30, 'UTC');
+      setBookingResult(data);
+      setMessages((prev) => [...prev, {
+        role: 'assistant',
+        content: `Meeting booked! ${selectedSlot.display}. Join link: ${data.meeting_link}`,
+      }]);
+      loadConversations();
+    } catch (err) {
+      alert('Failed to book meeting');
+    }
+  };
+
+  return (
+    <>
+      {/* Slot Picker Modal */}
+      {showSlotPicker && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Select a Time Slot</h2>
+              <button onClick={() => setShowSlotPicker(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"><X size={20} /></button>
+            </div>
+            <div className="p-6">
+              {bookingResult ? (
+                <div className="text-center space-y-4">
+                  <CheckCircle size={48} className="mx-auto text-green-600" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Meeting Booked!</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSlot?.display}</p>
+                  {bookingResult.meeting_link && (
+                    <a href={bookingResult.meeting_link} target="_blank" rel="noopener noreferrer"
+                      className="btn btn-primary inline-flex items-center gap-2">
+                      <CalendarIcon size={16} /> Join Meeting
+                    </a>
+                  )}
+                  <button onClick={() => {
+                    const blob = new Blob([bookingResult.ics_content], { type: 'text/calendar' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url;
+                    a.download = `meeting-${bookingResult.meeting_id}.ics`;
+                    a.click(); URL.revokeObjectURL(url);
+                  }} className="btn btn-secondary bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200">
+                    Download .ics
+                  </button>
+                  <button onClick={() => { setShowSlotPicker(false); setBookingResult(null); }}
+                    className="block mx-auto text-sm text-gray-500 hover:text-gray-700 mt-4">Close</button>
+                </div>
+              ) : loadingSlots ? (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">Loading available slots...</p>
+              ) : slots.length === 0 ? (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">No available slots for today.</p>
+              ) : (
+                <div className="space-y-2">
+                  {slots.map((slot, i) => (
+                    <button key={i} onClick={() => setSelectedSlot(slot)}
+                      className={`w-full text-left p-3 rounded-lg border text-sm transition-colors ${
+                        selectedSlot?.utc === slot.utc
+                          ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-700 dark:text-primary-300'
+                          : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white hover:border-primary-300'
+                      }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{slot.display}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{slot.duration_minutes} min</span>
+                      </div>
+                    </button>
+                  ))}
+                  <button onClick={bookSlot} disabled={!selectedSlot}
+                    className="btn btn-primary w-full mt-4 disabled:opacity-50">
+                    {selectedSlot ? `Confirm ${selectedSlot.display}` : 'Select a slot'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

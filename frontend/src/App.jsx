@@ -11,6 +11,9 @@ import WorkflowBuilder from './components/WorkflowBuilder';
 import OutreachCenter from './views/OutreachCenter';
 import SuppressionManager from './components/SuppressionManager';
 import ConversationHub from './views/ConversationHub';
+import MeetingManager from './components/MeetingManager';
+import OrchestrationDashboard from './views/OrchestrationDashboard';
+import LearningHub from './views/LearningHub';
 import Header from './components/Header';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -72,6 +75,9 @@ function App() {
               <Route path="/outreach" element={<OutreachCenter user={user} />} />
               <Route path="/suppressions" element={<SuppressionManager user={user} />} />
               <Route path="/conversations" element={<ConversationHub user={user} />} />
+              <Route path="/meetings" element={<MeetingManager user={user} />} />
+              <Route path="/orchestration" element={<OrchestrationDashboard user={user} />} />
+              <Route path="/learning" element={<LearningHub user={user} />} />
             </Routes>
           </main>
         </div>

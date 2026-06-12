@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone, Bot } from 'lucide-react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone, Bot, Video, GitBranch, BarChart3 } from 'lucide-react';
 import { api } from '../services/api';
 
 /**
@@ -13,6 +13,15 @@ function LeadDetailModal({ lead, onClose }) {
   const [conversation, setConversation] = useState(null);
   const [loadingConv, setLoadingConv] = useState(false);
   const [showConv, setShowConv] = useState(false);
+  const [meetings, setMeetings] = useState([]);
+  const [loadingMeetings, setLoadingMeetings] = useState(false);
+  const [showMeetings, setShowMeetings] = useState(false);
+  const [orchestrationLogs, setOrchestrationLogs] = useState([]);
+  const [loadingOrch, setLoadingOrch] = useState(false);
+  const [showOrch, setShowOrch] = useState(false);
+  const [outcomes, setOutcomes] = useState([]);
+  const [loadingOutcomes, setLoadingOutcomes] = useState(false);
+  const [showOutcomes, setShowOutcomes] = useState(false);
 
   useEffect(() => {
     if (showOutreach && lead?.id) {
@@ -21,7 +30,16 @@ function LeadDetailModal({ lead, onClose }) {
     if (showConv && lead?.id) {
       loadConversation();
     }
-  }, [showOutreach, showConv, lead?.id]);
+    if (showMeetings && lead?.id) {
+      loadMeetings();
+    }
+    if (showOrch && lead?.id) {
+      loadOrchestration();
+    }
+    if (showOutcomes && lead?.id) {
+      loadOutcomes();
+    }
+  }, [showOutreach, showConv, showMeetings, showOrch, showOutcomes, lead?.id]);
 
   const loadConversation = async () => {
     try {
@@ -32,6 +50,42 @@ function LeadDetailModal({ lead, onClose }) {
       console.error('Error loading conversation:', err);
     } finally {
       setLoadingConv(false);
+    }
+  };
+
+  const loadMeetings = async () => {
+    try {
+      setLoadingMeetings(true);
+      const data = await api.scheduler.getLeadMeetings(lead.id);
+      setMeetings(data?.meetings || []);
+    } catch (err) {
+      console.error('Error loading meetings:', err);
+    } finally {
+      setLoadingMeetings(false);
+    }
+  };
+
+  const loadOrchestration = async () => {
+    try {
+      setLoadingOrch(true);
+      const data = await api.orchestration.getLogs(lead.id);
+      setOrchestrationLogs(data?.logs || []);
+    } catch (err) {
+      console.error('Error loading orchestration:', err);
+    } finally {
+      setLoadingOrch(false);
+    }
+  };
+
+  const loadOutcomes = async () => {
+    try {
+      setLoadingOutcomes(true);
+      const data = await api.learning.getLeadOutcomes(lead.id);
+      setOutcomes(data?.outcomes || []);
+    } catch (err) {
+      console.error('Error loading outcomes:', err);
+    } finally {
+      setLoadingOutcomes(false);
     }
   };
 
@@ -739,6 +793,132 @@ function LeadDetailModal({ lead, onClose }) {
                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`p-2 rounded-lg text-xs max-w-[85%] ${msg.role === 'user' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
                         {msg.content?.substring(0, 120)}{msg.content?.length > 120 ? '...' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Outcome History */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.54s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <BarChart3 size={20} className="text-primary-600" />
+                Outcome History
+              </h3>
+              <button onClick={() => setShowOutcomes(!showOutcomes)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showOutcomes ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showOutcomes && (
+              loadingOutcomes ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : outcomes.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No outcome data for this lead.</p>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {outcomes.map((o) => (
+                    <div key={o.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between text-sm">
+                      <div>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{o.outcome_type}</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Action: {o.action_id}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{o.value}</span>
+                        <p className="text-xs text-gray-500">{o.created_at ? new Date(o.created_at).toLocaleDateString() : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Lifecycle & Orchestration */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.52s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <GitBranch size={20} className="text-primary-600" />
+                Lifecycle & Orchestration
+              </h3>
+              <button onClick={() => setShowOrch(!showOrch)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showOrch ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showOrch && (
+              <div>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Lifecycle Stage</p>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white capitalize">{lead.lifecycle_stage || 'new'}</span>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Active Agent</p>
+                    <span className="text-lg font-bold text-gray-900 dark:text-white capitalize">{lead.active_agent || 'None'}</span>
+                  </div>
+                </div>
+                {loadingOrch ? (
+                  <p className="text-sm text-gray-500">Loading execution logs...</p>
+                ) : orchestrationLogs.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No orchestration events yet.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {orchestrationLogs.map((log) => (
+                      <div key={log.id} className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600 text-xs">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-gray-900 dark:text-white">{log.previous_stage} → {log.new_stage}</span>
+                          <span className="text-gray-500">{log.created_at ? new Date(log.created_at).toLocaleString() : ''}</span>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-400 mb-1">{log.trigger_reason}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">{log.assigned_agent}</span>
+                          <span className="text-gray-500">{log.action}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Meetings */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.5s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <Video size={20} className="text-primary-600" />
+                Meetings
+              </h3>
+              <button onClick={() => setShowMeetings(!showMeetings)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showMeetings ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showMeetings && (
+              loadingMeetings ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading meetings...</p>
+              ) : meetings.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No meetings booked for this lead.</p>
+              ) : (
+                <div className="space-y-2">
+                  {meetings.map((m) => (
+                    <div key={m.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between text-sm">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {m.scheduled_time ? new Date(m.scheduled_time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{m.duration_minutes} min · {m.timezone}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${m.status === 'scheduled' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : m.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'bg-red-100 dark:bg-red-900/30 text-red-700'}`}>
+                          {m.status}
+                        </span>
+                        {m.meeting_link && m.status === 'scheduled' && (
+                          <a href={m.meeting_link} target="_blank" rel="noopener noreferrer" className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded">
+                            <Video size={14} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   ))}

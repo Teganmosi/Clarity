@@ -33,6 +33,9 @@ celery==5.3.4
 openai==1.12.0
 aiosmtplib==3.0.2
 
+# Calendar / iCal (Sprint 8)
+icalendar==5.0.13
+
 # Email notifications
 
 # SMS / Twilio (Sprint 6)

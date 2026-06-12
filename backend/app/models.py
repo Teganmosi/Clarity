@@ -85,6 +85,9 @@ class Lead(Base):
 
     # Enrichment Data (Sprint 1: API Integration Framework)
     technologies = Column(JSON, default=list)              # Tech stack array
+    lifecycle_stage = Column(String(30), default="new")     # new, engaging, qualified, meeting_booked, closed
+    active_agent = Column(String(30))                       # enrichment, intent, predictive, outreach, conversation, scheduler
+
     funding_stage = Column(String(50))                     # Seed, Series A, etc.
     employee_count = Column(Integer)                       # Company size
     logo_url = Column(String(500))                         # Company logo URL
@@ -183,6 +186,55 @@ class Conversation(Base):
     status = Column(String(20), default="active")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class AgentExecutionLog(Base):
+    __tablename__ = "agent_execution_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    previous_stage = Column(String(30))
+    new_stage = Column(String(30))
+    trigger_reason = Column(Text)
+    assigned_agent = Column(String(30))
+    action = Column(String(200))
+    outcome = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Meeting(Base):
+    __tablename__ = "meetings"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    scheduled_time = Column(DateTime(timezone=True), nullable=False)
+    duration_minutes = Column(Integer, default=30)
+    timezone = Column(String(50), default="UTC")
+    status = Column(String(20), default="scheduled")
+    meeting_link = Column(String(500))
+    ics_content = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class OutcomeLog(Base):
+    __tablename__ = "outcome_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    action_id = Column(String(100))
+    outcome_type = Column(String(50))
+    value = Column(Float, default=1.0)
+    extra_data = Column(JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ABTest(Base):
+    __tablename__ = "ab_tests"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200))
+    variant_a = Column(JSON, default=dict)
+    variant_b = Column(JSON, default=dict)
+    metric = Column(String(50), default="reply_rate")
+    winner = Column(String(10))
+    status = Column(String(20), default="running")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class IntegrationLog(Base):
