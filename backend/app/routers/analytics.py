@@ -3,16 +3,17 @@ Analytics router
 Provides analytics endpoints for conversion rates, score distribution, and insights
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, Integer
-from typing import List, Dict
+from sqlalchemy import func, Integer, Float
+from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 
 from ..database import get_db
 from ..models import Lead, User, NotificationLog
 from ..schemas import ConversionRateResponse, ScoreDistributionResponse, AnalyticsResponse
 from ..auth import get_current_user
+from ..services.predictive_engine import calculate_closure_probability, calculate_clv, predict_forecast_close_date, train_model
 
 # Create router
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -399,6 +400,78 @@ async def get_trends(
         current_date += timedelta(days=1)
     
     return trends
+
+
+@router.get("/forecast")
+async def get_forecast(
+    months: int = 3,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    leads = db.query(Lead).filter(Lead.user_id == current_user.id, Lead.converted == False).all()
+    monthly_revenue = []
+    now = datetime.utcnow()
+    for m in range(1, months + 1):
+        month_start = now + timedelta(days=30 * (m - 1))
+        month_end = now + timedelta(days=30 * m)
+        month_label = month_start.strftime("%Y-%m")
+        total = 0.0
+        count = 0
+        for lead in leads:
+            prob = calculate_closure_probability(lead)
+            clv = calculate_clv(lead)
+            weighted = prob * clv
+            total += weighted
+            count += 1
+        monthly_revenue.append({
+            "month": month_label,
+            "projected_revenue": round(total, 2),
+            "lead_count": count,
+            "avg_closure_prob": round(total / count, 4) if count > 0 else 0,
+        })
+    total_pipeline = sum(r["projected_revenue"] for r in monthly_revenue)
+    return {
+        "forecast": monthly_revenue,
+        "total_projected_revenue": round(total_pipeline, 2),
+        "forecast_months": months,
+    }
+
+
+@router.post("/train-model")
+async def train_closure_model(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    leads = db.query(Lead).filter(Lead.user_id == current_user.id).all()
+    if len(leads) < 10:
+        raise HTTPException(status_code=400, detail="Need at least 10 leads to train model")
+    result = train_model(leads)
+    return result
+
+
+@router.get("/pipeline-value")
+async def get_pipeline_value(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    leads = db.query(Lead).filter(Lead.user_id == current_user.id, Lead.converted == False).all()
+    total_value = 0.0
+    high_intent = 0
+    avg_prob = 0.0
+    for lead in leads:
+        clv = calculate_clv(lead)
+        prob = calculate_closure_probability(lead)
+        total_value += clv * prob
+        if getattr(lead, "intent_score", 0) >= 75:
+            high_intent += 1
+        avg_prob += prob
+    count = len(leads) or 1
+    return {
+        "total_pipeline_value": round(total_value, 2),
+        "high_intent_lead_count": high_intent,
+        "average_closure_probability": round(avg_prob / count, 4),
+        "total_leads": len(leads),
+    }
 
 
 @router.get("/notifications-summary")

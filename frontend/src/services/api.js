@@ -468,6 +468,62 @@ export const enrichmentAPI = {
   },
 };
 
+// Workflow API
+export const workflowAPI = {
+  /**
+   * Create a new workflow rule
+   */
+  createRule: async (name, triggerField, triggerOperator, triggerValue, actionType, actionParams = {}) => {
+    const params = new URLSearchParams({
+      name, trigger_field: triggerField, trigger_operator: triggerOperator,
+      trigger_value: triggerValue, action_type: actionType,
+    });
+    return apiRequest(`/workflows/rules?${params}`, {
+      method: 'POST',
+      body: JSON.stringify(actionParams),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+
+  /**
+   * List all workflow rules
+   */
+  listRules: async () => {
+    return apiRequest('/workflows/rules');
+  },
+
+  /**
+   * Toggle a rule active/inactive
+   */
+  toggleRule: async (ruleId) => {
+    return apiRequest(`/workflows/rules/${ruleId}/toggle`, {
+      method: 'PUT',
+    });
+  },
+
+  /**
+   * Delete a workflow rule
+   */
+  deleteRule: async (ruleId) => {
+    return apiRequest(`/workflows/rules/${ruleId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Extend analyticsAPI with Sprint 3 endpoints
+analyticsAPI.getPipelineValue = async () => {
+  return apiRequest('/analytics/pipeline-value');
+};
+
+analyticsAPI.getForecast = async (months = 3) => {
+  return apiRequest(`/analytics/forecast?months=${months}`);
+};
+
+analyticsAPI.trainModel = async () => {
+  return apiRequest('/analytics/train-model', { method: 'POST' });
+};
+
 // Intent API
 export const intentAPI = {
   /**
@@ -503,6 +559,7 @@ export const api = {
   integrations: integrationsAPI,
   enrichment: enrichmentAPI,
   intent: intentAPI,
+  workflows: workflowAPI,
 };
 
 export default api;

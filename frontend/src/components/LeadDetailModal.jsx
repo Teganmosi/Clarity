@@ -351,6 +351,46 @@ function LeadDetailModal({ lead, onClose }) {
             </div>
           </div>
 
+          {/* AI Prediction Card */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.15s' }}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
+              <TrendingUp size={20} className="text-primary-600" />
+              AI Prediction
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Closure Probability</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {lead.predicted_closure_prob ? `${(lead.predicted_closure_prob * 100).toFixed(1)}%` : 'N/A'}
+                </p>
+                <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${(lead.predicted_closure_prob || 0) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-xs text-green-600 dark:text-green-400 font-medium uppercase mb-1">Estimated CLV</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {lead.estimated_clv ? `$${lead.estimated_clv.toLocaleString()}` : 'N/A'}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  Lifetime value projection
+                </p>
+              </div>
+              <div className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium uppercase mb-1">Forecast Close</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {lead.forecast_close_date || 'N/A'}
+                </p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                  Predicted close date
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Intent Signals */}
           {lead.intent_signals && lead.intent_signals.length > 0 && (
             <div className="card animate-scale-in" style={{ animationDelay: '0.22s' }}>

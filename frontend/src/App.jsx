@@ -6,6 +6,8 @@ import Dashboard from './components/Dashboard';
 import LeadsList from './components/LeadsList';
 import Analytics from './components/Analytics';
 import Integrations from './components/Integrations';
+import AnalyticsDashboard from './views/AnalyticsDashboard';
+import WorkflowBuilder from './components/WorkflowBuilder';
 import Header from './components/Header';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -62,6 +64,8 @@ function App() {
               <Route path="/leads" element={<LeadsList user={user} />} />
               <Route path="/analytics" element={<Analytics user={user} />} />
               <Route path="/integrations" element={<Integrations user={user} />} />
+              <Route path="/analytics-dashboard" element={<AnalyticsDashboard user={user} />} />
+              <Route path="/workflows" element={<WorkflowBuilder user={user} />} />
             </Routes>
           </main>
         </div>
