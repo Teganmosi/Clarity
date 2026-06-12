@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles } from 'lucide-react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone } from 'lucide-react';
 import { api } from '../services/api';
 
 /**
@@ -20,7 +20,7 @@ function LeadDetailModal({ lead, onClose }) {
   const loadOutreachHistory = async () => {
     try {
       setLoadingHistory(true);
-      const data = await api.outreach.getHistory(lead.id);
+      const data = await api.multichannel.getHistory(lead.id);
       setOutreachHistory(data?.history || []);
     } catch (err) {
       console.error('Error loading outreach history:', err);
@@ -627,12 +627,12 @@ function LeadDetailModal({ lead, onClose }) {
             </div>
           )}
 
-          {/* Outreach History */}
+          {/* Omni-Channel History */}
           <div className="card animate-scale-in" style={{ animationDelay: '0.45s' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
                 <Send size={20} className="text-primary-600" />
-                Outreach History
+                Omni-Channel History
               </h3>
               <button onClick={() => setShowOutreach(!showOutreach)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
                 {showOutreach ? 'Hide' : 'Show'}
@@ -645,16 +645,16 @@ function LeadDetailModal({ lead, onClose }) {
                 <p className="text-sm text-gray-500 dark:text-gray-400">No outreach history for this lead.</p>
               ) : (
                 <div className="space-y-2">
-                  {outreachHistory.map((h) => (
+                  {outreachHistory.map((h) => {
+                    const HIcon = h.channel === 'linkedin' ? Linkedin : h.channel === 'sms' ? Smartphone : Mail;
+                    return (
                     <div key={h.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between text-sm">
                       <div className="flex items-center gap-3">
-                        {h.status === 'sent' ? <Mail size={16} className="text-green-600" /> :
-                         h.status === 'opened' ? <CheckCircle2 size={16} className="text-blue-600" /> :
-                         <FileText size={16} className="text-yellow-600" />}
+                        <HIcon size={16} className={h.channel === 'email' ? 'text-blue-600' : h.channel === 'linkedin' ? 'text-sky-600' : 'text-green-600'} />
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{h.subject}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{h.subject || h.channel || 'Message'}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {h.status} · {h.ai_model_used} · {h.created_at ? new Date(h.created_at).toLocaleString() : ''}
+                            {h.channel} · {h.status} · {h.sent_at ? new Date(h.sent_at).toLocaleString() : ''}
                           </p>
                         </div>
                       </div>
@@ -667,7 +667,8 @@ function LeadDetailModal({ lead, onClose }) {
                         {h.status}
                       </span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             )}

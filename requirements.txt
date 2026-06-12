@@ -35,6 +35,9 @@ aiosmtplib==3.0.2
 
 # Email notifications
 
+# SMS / Twilio (Sprint 6)
+twilio==9.3.0
+
 # HTTP client for integrations
 httpx==0.25.2
 aiohttp==3.9.1

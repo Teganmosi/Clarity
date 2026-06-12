@@ -603,6 +603,39 @@ export const outreachAPI = {
   },
 };
 
+// Multi-Channel API
+export const multichannelAPI = {
+  suggest: async (leadId, preferredChannel = null) => {
+    let url = `/multichannel/suggest?lead_id=${leadId}`;
+    if (preferredChannel) url += `&preferred_channel=${preferredChannel}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  send: async (leadId, channel, subject = null, body = null, recipient = null) => {
+    let url = `/multichannel/send?lead_id=${leadId}&channel=${channel}`;
+    if (subject) url += `&subject=${encodeURIComponent(subject)}`;
+    if (body) url += `&body=${encodeURIComponent(body)}`;
+    if (recipient) url += `&recipient=${encodeURIComponent(recipient)}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  getHistory: async (leadId) => {
+    return apiRequest(`/multichannel/history/${leadId}`);
+  },
+  getSuppressions: async () => {
+    return apiRequest('/multichannel/suppressions');
+  },
+  addSuppression: async (email, phone, reason = 'user_request') => {
+    let url = `/multichannel/suppressions/add?reason=${reason}`;
+    if (email) url += `&email=${encodeURIComponent(email)}`;
+    if (phone) url += `&phone=${encodeURIComponent(phone)}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  removeSuppression: async (suppressionId) => {
+    return apiRequest(`/multichannel/suppressions/${suppressionId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
@@ -613,6 +646,7 @@ export const api = {
   workflows: workflowAPI,
   workflowTemplates: workflowTemplatesAPI,
   outreach: outreachAPI,
+  multichannel: multichannelAPI,
 };
 
 export default api;

@@ -126,6 +126,40 @@ class NotificationLog(Base):
     sent_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class GlobalSuppression(Base):
+    __tablename__ = "global_suppressions"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(200), index=True)
+    phone = Column(String(50), index=True)
+    reason = Column(String(100), default="user_request")
+    added_by = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class CommunicationLog(Base):
+    __tablename__ = "communication_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    channel = Column(String(20), nullable=False)
+    status = Column(String(20), default="sent")
+    subject = Column(String(200))
+    body = Column(Text)
+    message_id = Column(String(100))
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "lead_id": self.lead_id,
+            "channel": self.channel,
+            "status": self.status,
+            "subject": self.subject,
+            "body": self.body,
+            "message_id": self.message_id,
+            "sent_at": self.sent_at.isoformat() if self.sent_at else None,
+        }
+
+
 class EmailOutreach(Base):
     __tablename__ = "email_outreach"
     id = Column(Integer, primary_key=True, index=True)
