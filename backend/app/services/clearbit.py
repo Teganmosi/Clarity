@@ -18,19 +18,16 @@ class ClearbitService(BaseAPIClient):
 
     def _normalize_company_data(self, data: Dict) -> Dict[str, Any]:
         return {
-            "name": data.get("name"),
-            "domain": data.get("domain"),
-            "industry": data.get("category", {}).get("industry"),
-            "employee_count": data.get("metrics", {}).get("employees"),
-            "revenue": data.get("metrics", {}).get("annualRevenue"),
-            "founded_year": data.get("foundedYear"),
-            "location": data.get("geo", {}).get("city"),
-            "country": data.get("geo", {}).get("country"),
             "technologies": data.get("tech", []),
-            "description": data.get("bio"),
+            "funding_stage": data.get("metrics", {}).get("fundingStage"),
+            "employee_count": data.get("metrics", {}).get("employees"),
             "logo_url": data.get("logo"),
-            "linkedin_url": data.get("site", {}).get("googleAnalyticsAccount"),
-            "twitter_url": data.get("site", {}).get("twitterHandle"),
+            "linkedin_url": data.get("site", {}).get("linkedin", {}).get("handle"),
+            "twitter_handle": data.get("site", {}).get("twitter", {}).get("handle"),
+            "annual_revenue": data.get("metrics", {}).get("annualRevenue"),
+            "headquarters_location": data.get("geo", {}).get("city"),
+            "founded_year": data.get("foundedYear"),
+            "industry_tags": [data.get("category", {}).get("industry")] if data.get("category", {}).get("industry") else [],
         }
 
     def _normalize_person_data(self, data: Dict) -> Dict[str, Any]:
@@ -41,6 +38,5 @@ class ClearbitService(BaseAPIClient):
             "seniority": data.get("employment", {}).get("seniority"),
             "department": data.get("employment", {}).get("department"),
             "linkedin_url": data.get("bio", {}).get("site"),
-            "twitter_url": data.get("bio", {}).get("twitterHandle"),
             "phone": data.get("phone"),
         }

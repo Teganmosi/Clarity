@@ -219,39 +219,47 @@ class APIKeyAuth(BaseModel):
 
 
 # Enrichment Schemas (Sprint 1)
-class LeadEnrichmentBase(BaseModel):
+class CompanyEnrichmentData(BaseModel):
     technologies: Optional[List[str]] = []
     funding_stage: Optional[str] = None
-    funding_amount: Optional[int] = None
     employee_count: Optional[int] = None
-    company_description: Optional[str] = None
     logo_url: Optional[str] = None
     linkedin_url: Optional[str] = None
-    twitter_url: Optional[str] = None
-    intent_score: Optional[int] = 0
-    intent_signals: Optional[List[dict]] = []
+    twitter_handle: Optional[str] = None
+    annual_revenue: Optional[str] = None
+    headquarters_location: Optional[str] = None
+    founded_year: Optional[int] = None
+    industry_tags: Optional[List[str]] = []
 
 
-class LeadEnrichmentCreate(LeadEnrichmentBase):
-    pass
+class PersonEnrichmentData(BaseModel):
+    full_name: Optional[str] = None
+    title: Optional[str] = None
+    role: Optional[str] = None
+    seniority: Optional[str] = None
+    department: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    phone: Optional[str] = None
 
 
-class LeadWithEnrichment(LeadResponse, LeadEnrichmentBase):
-    enriched_at: Optional[datetime] = None
+class EnrichmentRequest(BaseModel):
+    lead_id: int
+
+
+class EnrichmentResponse(BaseModel):
+    message: str
+    lead_id: int
+    status: str = "processing"
     enrichment_source: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 
-class EnrichmentTriggerResponse(BaseModel):
+class BulkEnrichmentResponse(BaseModel):
     message: str
-    lead_id: int
-
-
-class BulkEnrichmentTriggerResponse(BaseModel):
-    message: str
-    count: int
+    total_queued: int
+    status: str = "processing"
 
 
 # Filter Schemas

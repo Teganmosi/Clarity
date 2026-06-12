@@ -352,17 +352,22 @@ function LeadDetailModal({ lead, onClose }) {
           </div>
 
           {/* Company Intelligence (Enriched Data) */}
-          {(lead.technologies || lead.funding_stage || lead.employee_count || lead.enriched_at) && (
+          {(lead.technologies || lead.funding_stage || lead.employee_count || lead.last_enriched_at) && (
             <div className="card animate-scale-in" style={{ animationDelay: '0.25s' }}>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
                 <Building2 size={20} className="text-primary-600" />
                 Company Intelligence
-                {lead.enriched_at && (
+                {lead.enrichment_status === 'completed' && (
                   <span className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
                     Enriched
                   </span>
                 )}
-                {!lead.enriched_at && (
+                {lead.enrichment_status === 'processing' && (
+                  <span className="ml-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-xs font-medium">
+                    Processing...
+                  </span>
+                )}
+                {(!lead.enrichment_status || lead.enrichment_status === 'pending') && (
                   <span className="ml-2 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-xs font-medium">
                     Not Enriched
                   </span>
@@ -394,21 +399,42 @@ function LeadDetailModal({ lead, onClose }) {
                   <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Funding Stage</p>
                     <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.funding_stage}</p>
-                    {lead.funding_amount && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">${(lead.funding_amount / 1000000).toFixed(1)}M raised</p>
-                    )}
                   </div>
                 )}
-                {lead.company_description && (
+                {lead.annual_revenue && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Annual Revenue</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.annual_revenue}</p>
+                  </div>
+                )}
+                {lead.headquarters_location && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Headquarters</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.headquarters_location}</p>
+                  </div>
+                )}
+                {lead.founded_year && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">Founded</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{lead.founded_year}</p>
+                  </div>
+                )}
+                {lead.industry_tags && lead.industry_tags.length > 0 && (
                   <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg md:col-span-2">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">About</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{lead.company_description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-2">Industry Tags</p>
+                    <div className="flex flex-wrap gap-1">
+                      {lead.industry_tags.map((tag, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-              {lead.enriched_at && (
+              {lead.last_enriched_at && (
                 <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                  Enriched via {lead.enrichment_source || 'external API'} on {new Date(lead.enriched_at).toLocaleDateString()}
+                  Enriched via {lead.enrichment_source || 'external API'} on {new Date(lead.last_enriched_at).toLocaleDateString()}
                 </p>
               )}
             </div>

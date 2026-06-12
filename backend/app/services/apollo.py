@@ -46,7 +46,7 @@ class ApolloService(BaseAPIClient):
             "industry": data.get("industry"),
             "employee_count": data.get("employee_count"),
             "revenue": data.get("revenue"),
-            "location": data.get("city"),
+            "headquarters_location": data.get("city"),
             "country": data.get("country"),
             "linkedin_url": data.get("linkedin_url"),
         }

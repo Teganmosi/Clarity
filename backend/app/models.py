@@ -74,24 +74,20 @@ class Lead(Base):
     pipedrive_id = Column(String(50))
     
     # Enrichment Data (Sprint 1: API Integration Framework)
-    technologies = Column(JSON, default=list)
-    funding_stage = Column(String(50))
-    funding_amount = Column(Integer)
-    employee_count = Column(Integer)
-    company_description = Column(Text)
-    logo_url = Column(String(500))
-    linkedin_url = Column(String(500))
-    twitter_url = Column(String(500))
-
-    # Intent Signals (Sprint 2)
-    intent_score = Column(Integer, default=0)
-    intent_signals = Column(JSON, default=list)
-    last_intent_update = Column(DateTime(timezone=True))
-
-    # Enrichment Metadata
-    enriched_at = Column(DateTime(timezone=True))
-    enrichment_source = Column(String(50))
-    enrichment_data = Column(JSON, default=dict)
+    technologies = Column(JSON, default=list)              # Tech stack array
+    funding_stage = Column(String(50))                     # Seed, Series A, etc.
+    employee_count = Column(Integer)                       # Company size
+    logo_url = Column(String(500))                         # Company logo URL
+    linkedin_url = Column(String(500))                     # LinkedIn profile URL
+    twitter_handle = Column(String(100))                   # Twitter/X handle
+    annual_revenue = Column(String(50))                    # Annual revenue range
+    headquarters_location = Column(String(200))            # HQ city/country
+    founded_year = Column(Integer)                         # Year founded
+    industry_tags = Column(JSON, default=list)             # Industry classification tags
+    tech_stack_last_updated = Column(DateTime(timezone=True))  # When tech stack was refreshed
+    enrichment_status = Column(String(20), default="pending")  # pending, processing, completed, failed
+    enrichment_source = Column(String(50))                 # clearbit, apollo, etc.
+    last_enriched_at = Column(DateTime(timezone=True))     # Last enrichment timestamp
 
     # Metadata
     notes = Column(Text)

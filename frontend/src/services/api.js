@@ -430,7 +430,7 @@ export const enrichmentAPI = {
    * Trigger enrichment for a single lead
    */
   enrichLead: async (leadId) => {
-    return apiRequest(`/enrichment/${leadId}/enrich`, {
+    return apiRequest(`/enrichment/enrich?lead_id=${leadId}`, {
       method: 'POST',
     });
   },
@@ -439,7 +439,7 @@ export const enrichmentAPI = {
    * Trigger enrichment for all unenriched leads
    */
   bulkEnrich: async () => {
-    return apiRequest('/enrichment/bulk/enrich', {
+    return apiRequest('/enrichment/bulk-enrich', {
       method: 'POST',
     });
   },
@@ -448,16 +448,23 @@ export const enrichmentAPI = {
    * Refresh enrichment for a lead
    */
   refreshEnrichment: async (leadId) => {
-    return apiRequest(`/enrichment/${leadId}/refresh`, {
+    return apiRequest(`/enrichment/refresh/${leadId}`, {
       method: 'POST',
     });
   },
 
   /**
-   * Get enrichment summary/status
+   * Get enrichment data for a lead
    */
-  getEnrichmentSummary: async () => {
-    return apiRequest('/enrichment/status/summary');
+  getEnrichmentData: async (leadId) => {
+    return apiRequest(`/enrichment/${leadId}`);
+  },
+
+  /**
+   * Get enrichment summary for a lead
+   */
+  getEnrichmentSummary: async (leadId) => {
+    return apiRequest(`/enrichment/summary/${leadId}`);
   },
 };
 
