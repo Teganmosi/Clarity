@@ -36,6 +36,9 @@ class Lead(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
+    # ABM / Account association (Sprint 11)
+    account_id = Column(Integer, ForeignKey("accounts.id"))
+
     # Lead basic information
     name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False, index=True)
@@ -87,6 +90,9 @@ class Lead(Base):
     technologies = Column(JSON, default=list)              # Tech stack array
     lifecycle_stage = Column(String(30), default="new")     # new, engaging, qualified, meeting_booked, closed
     active_agent = Column(String(30))                       # enrichment, intent, predictive, outreach, conversation, scheduler
+    preferred_language = Column(String(10), default="en")   # Sprint 12: Multi-language
+    region = Column(String(20))                              # Sprint 12: Region for compliance
+    compliance_flags = Column(JSON, default=dict)            # Sprint 12: GDPR/CCPA flags
 
     funding_stage = Column(String(50))                     # Seed, Series A, etc.
     employee_count = Column(Integer)                       # Company size
@@ -201,6 +207,19 @@ class AgentExecutionLog(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class VoiceCallLog(Base):
+    __tablename__ = "voice_call_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    status = Column(String(20), default="initiated")
+    phone_number = Column(String(30))
+    language = Column(String(10), default="en")
+    transcript = Column(Text)
+    recording_url = Column(String(500))
+    call_summary = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class Meeting(Base):
     __tablename__ = "meetings"
     id = Column(Integer, primary_key=True, index=True)
@@ -234,6 +253,96 @@ class ABTest(Base):
     metric = Column(String(50), default="reply_rate")
     winner = Column(String(10))
     status = Column(String(20), default="running")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Account(Base):
+    __tablename__ = "accounts"
+    id = Column(Integer, primary_key=True, index=True)
+    company_name = Column(String(200), nullable=False)
+    domain = Column(String(200), index=True)
+    industry = Column(String(100))
+    total_revenue = Column(Float, default=0.0)
+    employee_count = Column(Integer)
+    health_score = Column(Integer, default=0)
+    churn_risk_score = Column(Integer, default=0)
+    expansion_score = Column(Integer, default=0)
+    health_status = Column(String(20), default="healthy")
+    last_health_check = Column(DateTime(timezone=True))
+    buying_stage = Column(String(30), default="awareness")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    leads = relationship("Lead", backref="account", foreign_keys="Lead.account_id")
+
+
+class HealthSnapshot(Base):
+    __tablename__ = "health_snapshots"
+    id = Column(Integer, primary_key=True, index=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    health_score = Column(Integer)
+    churn_risk = Column(Integer)
+    expansion_score = Column(Integer)
+    snapshot_date = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permissions"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    role = Column(String(30), default="sdr")
+    can_view_all_leads = Column(Boolean, default=False)
+    can_delete_leads = Column(Boolean, default=False)
+    can_manage_users = Column(Boolean, default=False)
+    can_edit_global_settings = Column(Boolean, default=False)
+    can_view_analytics = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AnonymizedOutcome(Base):
+    __tablename__ = "anonymized_outcomes"
+    id = Column(Integer, primary_key=True, index=True)
+    hashed_identifier = Column(String(64), index=True)
+    industry_tag = Column(String(100))
+    funding_stage = Column(String(50))
+    action = Column(String(100))
+    action_type = Column(String(50))
+    success = Column(Boolean, default=False)
+    channel = Column(String(20), default="email")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class NetworkInsight(Base):
+    __tablename__ = "network_insights"
+    id = Column(Integer, primary_key=True, index=True)
+    segment = Column(JSON, default=dict)
+    insight_type = Column(String(50))
+    metric_value = Column(Float)
+    confidence = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Deal(Base):
+    __tablename__ = "deals"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    value = Column(Float, default=0.0)
+    currency = Column(String(10), default="USD")
+    contract_content = Column(Text)
+    status = Column(String(20), default="draft")
+    signing_url = Column(String(500))
+    payment_link = Column(String(500))
+    payment_intent_id = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    signed_at = Column(DateTime(timezone=True))
+    paid_at = Column(DateTime(timezone=True))
+
+
+class ContractLog(Base):
+    __tablename__ = "contract_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    deal_id = Column(Integer, ForeignKey("deals.id"), nullable=False)
+    action = Column(String(50))
+    details = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

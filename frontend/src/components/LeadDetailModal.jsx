@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone, Bot, Video, GitBranch, BarChart3 } from 'lucide-react';
+import { X, Target, Phone, Mail, Building2, Calendar, TrendingUp, Flame, Zap, Snowflake, Award, AlertCircle, CheckCircle2, AlertTriangle, Info, Send, FileText, Sparkles, MessageCircle, Linkedin, Smartphone, Bot, Video, GitBranch, BarChart3, Shield, Mic, Globe } from 'lucide-react';
 import { api } from '../services/api';
 
 /**
@@ -22,6 +22,16 @@ function LeadDetailModal({ lead, onClose }) {
   const [outcomes, setOutcomes] = useState([]);
   const [loadingOutcomes, setLoadingOutcomes] = useState(false);
   const [showOutcomes, setShowOutcomes] = useState(false);
+  const [accountHealth, setAccountHealth] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+  const [voiceCalls, setVoiceCalls] = useState([]);
+  const [loadingVoice, setLoadingVoice] = useState(false);
+  const [showVoice, setShowVoice] = useState(false);
+  const [networkSignal, setNetworkSignal] = useState(null);
+  const [deals, setDeals] = useState([]);
+  const [loadingDeals, setLoadingDeals] = useState(false);
+  const [showDeals, setShowDeals] = useState(false);
 
   useEffect(() => {
     if (showOutreach && lead?.id) {
@@ -39,7 +49,53 @@ function LeadDetailModal({ lead, onClose }) {
     if (showOutcomes && lead?.id) {
       loadOutcomes();
     }
-  }, [showOutreach, showConv, showMeetings, showOrch, showOutcomes, lead?.id]);
+    if (showAccount && lead?.id) {
+      loadAccountContext();
+    }
+    if (showVoice && lead?.id) {
+      loadVoiceCalls();
+    }
+    if (lead?.id && lead?.industry) {
+      loadNetworkSignal();
+    }
+    if (showDeals && lead?.id) {
+      loadDeals();
+    }
+  }, [showOutreach, showConv, showMeetings, showOrch, showOutcomes, showAccount, showVoice, showDeals, lead?.id]);
+
+  const loadNetworkSignal = async () => {
+    if (!lead?.industry) return;
+    try {
+      const data = await api.network.getBenchmarks(lead.industry);
+      const ch = data?.benchmarks?.[0];
+      if (ch) {
+        setNetworkSignal({ channel: ch.segment, rate: ch.success_rate });
+      }
+    } catch (err) {
+      // silently fail
+    }
+  };
+
+  const loadNetworkSignal = async () => {
+    if (!lead?.industry) return;
+    try {
+      const data = await api.network.getBenchmarks(lead.industry);
+      const ch = data?.benchmarks?.[0];
+      if (ch) setNetworkSignal({ channel: ch.segment, rate: ch.success_rate });
+    } catch (err) {}
+  };
+
+  const loadDeals = async () => {
+    try {
+      setLoadingDeals(true);
+      const data = await api.closing.getLeadDeals(lead.id);
+      setDeals(data?.deals || []);
+    } catch (err) {
+      console.error('Error loading deals:', err);
+    } finally {
+      setLoadingDeals(false);
+    }
+  };
 
   const loadConversation = async () => {
     try {
@@ -86,6 +142,37 @@ function LeadDetailModal({ lead, onClose }) {
       console.error('Error loading outcomes:', err);
     } finally {
       setLoadingOutcomes(false);
+    }
+  };
+
+  const loadAccountContext = async () => {
+    if (!lead.company) { setAccountHealth(null); return; }
+    try {
+      setLoadingAccount(true);
+      const accounts = await api.abm.listAccounts();
+      const match = (accounts?.accounts || []).find((a) => a.company_name?.toLowerCase() === lead.company?.toLowerCase());
+      if (match) {
+        const health = await api.abm.getAccountHealth(match.id);
+        setAccountHealth(health);
+      } else {
+        setAccountHealth(null);
+      }
+    } catch (err) {
+      console.error('Error loading account:', err);
+    } finally {
+      setLoadingAccount(false);
+    }
+  };
+
+  const loadVoiceCalls = async () => {
+    try {
+      setLoadingVoice(true);
+      const data = await api.global.getVoiceLogs(lead.id);
+      setVoiceCalls(data?.calls || []);
+    } catch (err) {
+      console.error('Error loading voice calls:', err);
+    } finally {
+      setLoadingVoice(false);
     }
   };
 
@@ -230,12 +317,17 @@ function LeadDetailModal({ lead, onClose }) {
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lead Details</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <X size={24} className="text-gray-600 dark:text-gray-400" />
-            </button>
+            <div className="flex items-center gap-2">
+              {networkSignal && (
+                <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium flex items-center gap-1">
+                  <Globe size={12} />
+                  {networkSignal.rate}% of {networkSignal.channel} leads convert in {lead.industry}
+                </span>
+              )}
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                <X size={24} className="text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -800,6 +892,120 @@ function LeadDetailModal({ lead, onClose }) {
               )
             )}
           </div>
+
+          {/* Active Deals */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.6s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <FileText size={20} className="text-primary-600" />
+                Active Deals
+              </h3>
+              <button onClick={() => setShowDeals(!showDeals)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showDeals ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showDeals && (
+              loadingDeals ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : deals.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No deals for this lead. Generate a contract from the Deal Desk.</p>
+              ) : (
+                <div className="space-y-2">
+                  {deals.map((d) => (
+                    <div key={d.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between text-sm">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{d.currency} {d.value?.toLocaleString()}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {d.status} · {d.created_at ? new Date(d.created_at).toLocaleDateString() : ''}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${
+                        d.status === 'paid' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700' :
+                        d.status === 'signed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' :
+                        d.status === 'sent' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' :
+                        'bg-gray-100 dark:bg-gray-700 text-gray-500'
+                      }`}>{d.status}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Voice Calls */}
+          <div className="card animate-scale-in" style={{ animationDelay: '0.58s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                <Mic size={20} className="text-primary-600" />
+                Voice Calls
+              </h3>
+              <button onClick={() => setShowVoice(!showVoice)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                {showVoice ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showVoice && (
+              loadingVoice ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : voiceCalls.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No voice calls for this lead.</p>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {voiceCalls.map((c) => (
+                    <div key={c.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 text-sm">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${c.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30 text-green-700' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700'}`}>
+                          {c.status}
+                        </span>
+                        <span className="text-xs text-gray-500">{c.language} · {c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span>
+                      </div>
+                      {c.call_summary && <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{c.call_summary}</p>}
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Account Context */}
+          {lead.company && (
+            <div className="card animate-scale-in" style={{ animationDelay: '0.56s' }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                  <Building2 size={20} className="text-primary-600" />
+                  Account Context: {lead.company}
+                </h3>
+                <button onClick={() => setShowAccount(!showAccount)} className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+                  {showAccount ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {showAccount && (
+                loadingAccount ? (
+                  <p className="text-sm text-gray-500">Loading...</p>
+                ) : !accountHealth ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No account data for {lead.company}.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <p className="text-xs text-gray-500">Health Score</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">{accountHealth.health_score}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <p className="text-xs text-gray-500">Stage</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">{accountHealth.buying_stage}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <p className="text-xs text-gray-500">Contacts</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">{accountHealth.total_leads}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
+                      <p className="text-xs text-gray-500">Meetings</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">{accountHealth.meetings_booked}</p>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )}
 
           {/* Outcome History */}
           <div className="card animate-scale-in" style={{ animationDelay: '0.54s' }}>

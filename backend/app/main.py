@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 import logging
 
 # Import routers
-from app.routers import auth, leads, analytics, integrations, enrichment, intent, workflows, workflow_templates, outreach, multichannel, conversation, scheduler, orchestration, learning
+from app.routers import auth, leads, analytics, integrations, enrichment, intent, workflows, workflow_templates, outreach, multichannel, conversation, scheduler, orchestration, learning, abm, global_comm, network, closing, retention
 
 # Import database
 from app.database import init_db
@@ -134,6 +134,11 @@ app.include_router(conversation.router)
 app.include_router(scheduler.router)
 app.include_router(orchestration.router)
 app.include_router(learning.router)
+app.include_router(abm.router)
+app.include_router(global_comm.router)
+app.include_router(network.router)
+app.include_router(closing.router)
+app.include_router(retention.router)
 
 
 # Run the application

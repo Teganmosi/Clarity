@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
-import { Send, MessageCircle, User, Bot, AlertTriangle, Phone, X, ChevronRight, DollarSign, Shield, Target, Clock, ThumbsUp, ThumbsDown, Minus, Calendar as CalendarIcon, CheckCircle } from 'lucide-react';
+import VoiceDialer from '../components/VoiceDialer';
+import { Send, MessageCircle, User, Bot, AlertTriangle, Phone, X, ChevronRight, DollarSign, Shield, Target, Clock, ThumbsUp, ThumbsDown, Minus, Calendar as CalendarIcon, CheckCircle, Globe, PhoneCall } from 'lucide-react';
 
 function ConversationHub({ user }) {
   const [conversations, setConversations] = useState([]);
@@ -16,6 +17,7 @@ function ConversationHub({ user }) {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [bookingResult, setBookingResult] = useState(null);
+  const [showVoiceDialer, setShowVoiceDialer] = useState(null);
   const chatEnd = useRef(null);
 
   useEffect(() => {
@@ -228,7 +230,12 @@ function ConversationHub({ user }) {
           )}
         </div>
 
-        {/* BANT Dashboard */}
+          {/* Voice Dialer */}
+          {showVoiceDialer && (
+            <VoiceDialer lead={showVoiceDialer} onClose={() => setShowVoiceDialer(null)} />
+          )}
+
+          {/* BANT Dashboard */}
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 lg:col-span-1">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">BANT Qualification</h3>
           {bant ? (

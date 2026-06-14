@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart3, Settings, GitBranch, TrendingUp, Send, Ban, MessageCircle, Calendar, Cpu, Brain, LogOut, User, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, Settings, GitBranch, TrendingUp, Send, Ban, MessageCircle, Calendar, Cpu, Brain, Building2, Globe, DollarSign, HeartHandshake, LogOut, User, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 function Header({ user, onLogout }) {
@@ -20,6 +20,10 @@ function Header({ user, onLogout }) {
     { path: '/meetings', label: 'Meetings', icon: Calendar },
     { path: '/orchestration', label: 'Orchestrate', icon: Cpu },
     { path: '/learning', label: 'Learning', icon: Brain },
+    { path: '/accounts', label: 'Accounts', icon: Building2 },
+    { path: '/network', label: 'Network', icon: Globe },
+    { path: '/deals', label: 'Deals', icon: DollarSign },
+    { path: '/retention', label: 'Retention', icon: HeartHandshake },
   ];
 
   const closeMenu = () => setIsMenuOpen(false);

@@ -14,6 +14,10 @@ import ConversationHub from './views/ConversationHub';
 import MeetingManager from './components/MeetingManager';
 import OrchestrationDashboard from './views/OrchestrationDashboard';
 import LearningHub from './views/LearningHub';
+import AccountDashboard from './views/AccountDashboard';
+import NetworkInsights from './views/NetworkInsights';
+import DealDesk from './views/DealDesk';
+import RetentionDashboard from './views/RetentionDashboard';
 import Header from './components/Header';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -78,6 +82,10 @@ function App() {
               <Route path="/meetings" element={<MeetingManager user={user} />} />
               <Route path="/orchestration" element={<OrchestrationDashboard user={user} />} />
               <Route path="/learning" element={<LearningHub user={user} />} />
+              <Route path="/accounts" element={<AccountDashboard user={user} />} />
+              <Route path="/network" element={<NetworkInsights user={user} />} />
+              <Route path="/deals" element={<DealDesk user={user} />} />
+              <Route path="/retention" element={<RetentionDashboard user={user} />} />
             </Routes>
           </main>
         </div>

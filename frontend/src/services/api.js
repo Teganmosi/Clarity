@@ -722,6 +722,101 @@ export const learningAPI = {
   },
 };
 
+// ABM API
+export const abmAPI = {
+  listAccounts: async () => {
+    return apiRequest('/abm/accounts');
+  },
+  syncAccounts: async () => {
+    return apiRequest('/abm/accounts/sync', { method: 'POST' });
+  },
+  getAccountHealth: async (accountId) => {
+    return apiRequest(`/abm/accounts/${accountId}/health`);
+  },
+  getCommittee: async (accountId) => {
+    return apiRequest(`/abm/accounts/${accountId}/committee`);
+  },
+  generateContent: async (leadId) => {
+    return apiRequest(`/abm/content/generate?lead_id=${leadId}`, { method: 'POST' });
+  },
+  getBattleCard: async (competitor) => {
+    return apiRequest(`/abm/battle-card/${encodeURIComponent(competitor)}`);
+  },
+  getPermissions: async () => {
+    return apiRequest('/abm/permissions');
+  },
+  updatePermissions: async (role, opts = {}) => {
+    const params = new URLSearchParams({ role, ...opts });
+    return apiRequest(`/abm/permissions?${params}`, { method: 'PUT' });
+  },
+};
+
+// Global API
+export const globalAPI = {
+  detect: async (leadId, textSample = null) => {
+    let url = `/global/detect?lead_id=${leadId}`;
+    if (textSample) url += `&text_sample=${encodeURIComponent(textSample)}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  voiceCall: async (leadId, phoneNumber) => {
+    const params = new URLSearchParams({ lead_id: leadId, phone_number: phoneNumber });
+    return apiRequest(`/global/voice/call?${params}`, { method: 'POST' });
+  },
+  transcribeCall: async (callId, transcript) => {
+    const params = new URLSearchParams({ call_id: callId, transcript });
+    return apiRequest(`/global/voice/transcribe?${params}`, { method: 'POST' });
+  },
+  getVoiceLogs: async (leadId) => {
+    return apiRequest(`/global/voice/logs/${leadId}`);
+  },
+};
+
+// Network API
+export const networkAPI = {
+  ingest: async (leadId, action = 'outreach', success = null, channel = 'email') => {
+    const params = new URLSearchParams({ lead_id: leadId, action, channel });
+    if (success !== null) params.append('success', success);
+    return apiRequest(`/network/ingest?${params}`, { method: 'POST' });
+  },
+  getBenchmarks: async (industry = null) => {
+    let url = '/network/benchmarks';
+    if (industry) url += `?industry=${encodeURIComponent(industry)}`;
+    return apiRequest(url);
+  },
+  getInsights: async (industry = null) => {
+    let url = '/network/insights';
+    if (industry) url += `?industry=${encodeURIComponent(industry)}`;
+    return apiRequest(url);
+  },
+  getStats: async () => {
+    return apiRequest('/network/stats');
+  },
+};
+
+// Closing API
+export const closingAPI = {
+  generate: async (leadId, clv = null, currency = 'USD', scope = 'AI Lead Scoring', durationMonths = 12) => {
+    let url = `/closing/generate?lead_id=${leadId}&currency=${currency}&scope=${encodeURIComponent(scope)}&duration_months=${durationMonths}`;
+    if (clv) url += `&clv=${clv}`;
+    return apiRequest(url, { method: 'POST' });
+  },
+  send: async (dealId, signerEmail) => {
+    return apiRequest(`/closing/send/${dealId}?signer_email=${encodeURIComponent(signerEmail)}`, { method: 'POST' });
+  },
+  getLeadDeals: async (leadId) => {
+    return apiRequest(`/closing/deals/${leadId}`);
+  },
+  sign: async (dealId) => {
+    return apiRequest(`/closing/sign/${dealId}`, { method: 'POST' });
+  },
+  pay: async (dealId) => {
+    return apiRequest(`/closing/pay/${dealId}`, { method: 'POST' });
+  },
+  listAll: async () => {
+    return apiRequest('/closing/all');
+  },
+};
+
 export const api = {
   auth: authAPI,
   leads: leadsAPI,
@@ -737,6 +832,10 @@ export const api = {
   scheduler: schedulerAPI,
   orchestration: orchestrationAPI,
   learning: learningAPI,
+  abm: abmAPI,
+  global: globalAPI,
+  network: networkAPI,
+  closing: closingAPI,
 };
 
 export default api;
